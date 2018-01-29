@@ -12,9 +12,13 @@
       "./node_modules/@types",
       "./local-typings"
     ],
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "declaration": true
   },
   "include": [
     "src/**/*"
+  ],
+  "exclude": [
+    "src/__tests__/**/*"
   ]
 }

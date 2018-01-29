@@ -10,6 +10,17 @@ npm install -g lerna
 
 # build
 
+See the build for the packages
+
+
+## publish 
+
+```
+git checkout master
+git merge develop
+lerna publish --conventional-commits
+```
+
 
 
 

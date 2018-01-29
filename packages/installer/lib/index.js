@@ -25,7 +25,7 @@ function install(dir, elements, models, reporter) {
         yield reporter.promise('installing configure', installConfigure(installed.dir, installed.elements));
         const dirs = {
             configure: path_1.join(installer.installationDir, '.configure'),
-            controllers: path_1.join(installer.installationDir, '.controller'),
+            controllers: path_1.join(installer.installationDir, '.controllers'),
             root: installer.installationDir
         };
         return {

@@ -15,7 +15,7 @@
   "scripts": {
     "test": "./node_modules/.bin/jest unit",
     "integration-test": "./node_modules/.bin/jest int",
-    "build": "rm -fr lib && ./node_modules/.bin/tsc"
+    "build": "rm -fr lib && ./node_modules/.bin/tsc --p tsconfig.build.json"
   },
   "dependencies": {
     "@yarnpkg/lockfile": "^1.0.0",

@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const installer_1 = require("./installer");
+exports.PackageType = installer_1.PackageType;
 const log_factory_1 = require("log-factory");
 const path_1 = require("path");
 const fs_extra_1 = require("fs-extra");
@@ -22,7 +23,15 @@ function install(dir, elements, models, reporter) {
         logger.silly('installed: ', JSON.stringify(installed));
         yield reporter.promise('installing controllers', installControllers(installed.dir, installed.elements));
         yield reporter.promise('installing configure', installConfigure(installed.dir, installed.elements));
-        return installed.elements;
+        const dirs = {
+            configure: path_1.join(installer.installationDir, '.configure'),
+            controllers: path_1.join(installer.installationDir, '.controllers'),
+            root: installer.installationDir
+        };
+        return {
+            dirs,
+            installed: installed.elements
+        };
     });
 }
 exports.install = install;

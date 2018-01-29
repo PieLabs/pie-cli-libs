@@ -13,6 +13,12 @@ export enum PackageType {
   PACKAGE = 'package'
 }
 
+export type Dirs = {
+  configure: string,
+  controllers: string,
+  root: string
+};
+
 export type Input = {
   element: string,
   value: string
@@ -28,6 +34,7 @@ export type PreInstallRequest = {
 };
 
 export type PostInstall = {
+  dir: string,
   moduleId: string,
   version: string,
   resolved: string,
@@ -70,7 +77,7 @@ export type Models = Model[];
  */
 export default class RootInstaller {
 
-  private readonly installationDir: string;
+  public readonly installationDir: string;
 
   constructor(private cwd: string, private reporter: Reporter) {
 
@@ -110,6 +117,8 @@ export default class RootInstaller {
         preInstall.value,
         installationResult);
 
+      postInstall.dir = this.installationDir;
+
       return {
         element: input.element,
         input,
@@ -118,6 +127,7 @@ export default class RootInstaller {
         preInstall,
       };
     });
+
     logger.silly('out', out);
     return Promise.all(out)
       .then(e => ({ dir: this.installationDir, elements: e }));
@@ -183,15 +193,27 @@ export function findInstallationResult(
   return { ...installationResult[k], moduleId };
 }
 
-export async function writePackageJson(dir: string, data: {} = {}): Promise<void> {
-  const info = {
-    description: 'auto generated package.json',
-    name: 'x',
-    private: true,
-    version: '0.0.1',
-    ...data
-  };
-  return writeJson(join(dir, 'package.json'), info);
+export async function writePackageJson(dir: string, data: {} = {}, opts = {
+  force: false
+}): Promise<void> {
+
+  logger.silly('[writePackageJson]: dir: ', dir);
+
+  const pkgPath = join(dir, 'package.json');
+
+  if (await pathExists(pkgPath)) {
+    return Promise.resolve();
+  } else {
+    const info = {
+      description: 'auto generated package.json',
+      license: 'MIT',
+      name: 'x',
+      private: true,
+      version: '0.0.1',
+      ...data
+    };
+    return writeJson(join(dir, 'package.json'), info);
+  }
 }
 
 export async function readPackage(dir: string): Promise<Package> {

@@ -58,8 +58,7 @@ async function yarnAdd(cwd: string, keys: string[]): Promise<void> {
 export async function install(cwd: string, keys: string[]): Promise<{}> {
   const yarnCmd = await findYarnCmd();
   logger.silly('using yarn cmd: ', yarnCmd);
-
-  logger.info('cwd: ', cwd);
+  logger.silly('cwd: ', cwd);
 
   /**
    * cant use package.json because the
@@ -82,14 +81,13 @@ export async function readYarnLock(cwd: string): Promise<{}> {
   const yarnLockPath = join(cwd, 'yarn.lock');
   const exists = await pathExists(yarnLockPath);
 
-  logger.info(yarnLockPath, 'exists? ', exists);
+  logger.silly(yarnLockPath, 'exists? ', exists);
 
   if (exists) {
     const file = await readFile(yarnLockPath, 'utf8');
     const parsed = lockfile.parse(file);
     return parsed.object;
   } else {
-    logger.warning('!!!! ');
     return Promise.reject(new Error(`no yarn file: ${yarnLockPath}`));
   }
 }

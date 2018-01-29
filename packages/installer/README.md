@@ -72,26 +72,4 @@ It'll return an array of objects similar to:
 }
 ```
 
-
-### notes .
-
-Yarn builds the lock file like: 
-```
-"@pie-elements/text-entry@file:../../..":
-  version "0.2.2"
-  dependencies:
-    "@pie-libs/pie-player-events" "^0.0.1"
-    "@pie-libs/render-ui" "^0.1.4"
-    debug "^3.0.1"
-    lodash "^4.17.4"
-    material-ui "^1.0.0-beta.27"
-    material-ui-icons "^1.0.0-beta.17"
-    react "^15.6.1"
-    react-addons-css-transition-group "^15.6.0"
-    react-dom "^15.6.1"
-    react-number-format PieElements/react-number-format#feature/bad-input
-```
-which has enough info to wire this module back to the element.
-
-
 [pie]: http://pie-framework.org

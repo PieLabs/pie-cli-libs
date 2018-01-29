@@ -8,6 +8,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "engines": {
+    "node": ">=9.4.0",
+    "npm": ">=5.6.0"
+  },
   "scripts": {
     "test": "./node_modules/.bin/jest unit",
     "integration-test": "./node_modules/.bin/jest int",

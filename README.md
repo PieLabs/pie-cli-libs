@@ -21,7 +21,4 @@ git merge develop
 lerna publish --conventional-commits
 ```
 
-
-
-
 [cli]: github.com/PieLabs/pie-cli

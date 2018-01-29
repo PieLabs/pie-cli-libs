@@ -70,9 +70,7 @@ export async function install(cwd: string, keys: string[]): Promise<{}> {
   // if there are any keys not in the package.json add them.
   await yarnAdd(cwd, outstandingKeys);
   // always run an install...
-  // if there are any keys not in the package.json add them.
   await yarnInstall(cwd);
-  logger.silly('read lock file...');
   return readYarnLock(cwd);
 }
 

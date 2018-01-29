@@ -196,6 +196,7 @@ export function findInstallationResult(
 export async function writePackageJson(dir: string, data: {} = {}): Promise<void> {
   const info = {
     description: 'auto generated package.json',
+    license: 'MIT',
     name: 'x',
     private: true,
     version: '0.0.1',

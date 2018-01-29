@@ -111,7 +111,7 @@ function findInstallationResult(local, path, installationResult) {
 exports.findInstallationResult = findInstallationResult;
 function writePackageJson(dir, data = {}) {
     return __awaiter(this, void 0, void 0, function* () {
-        const info = Object.assign({ description: 'auto generated package.json', name: 'x', private: true, version: '0.0.1' }, data);
+        const info = Object.assign({ description: 'auto generated package.json', license: 'MIT', name: 'x', private: true, version: '0.0.1' }, data);
         return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info);
     });
 }

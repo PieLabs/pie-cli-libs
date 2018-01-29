@@ -4,6 +4,10 @@ export declare function removeKeysThatAreInPackage(keys: string[], pkg: {
         [d: string]: string;
     };
 }): string[];
+export declare const asId: (raw: string) => string;
+export declare const inDependencies: (dependencies: {
+    [d: string]: string;
+}, input: string) => boolean;
 export declare type IdAndTarget = {
     id: string;
     target: string;

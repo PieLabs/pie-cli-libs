@@ -17,7 +17,7 @@ const findYarnCmd = () => {
 };
 
 async function yarnInstall(cwd: string): Promise<void> {
-  const yarnCmd = findYarnCmd();
+  const yarnCmd = await findYarnCmd();
   return new Promise<void>((resolve, reject) => {
     spawn(yarnCmd, ['install'], { cwd, stdio: 'inherit' })
       .on('error', reject)
@@ -33,7 +33,7 @@ async function yarnInstall(cwd: string): Promise<void> {
 
 async function yarnAdd(cwd: string, keys: string[]): Promise<void> {
 
-  const yarnCmd = findYarnCmd();
+  const yarnCmd = await findYarnCmd();
 
   if (!keys || keys.length === 0) {
     return Promise.resolve();

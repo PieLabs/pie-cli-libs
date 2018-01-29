@@ -74,6 +74,8 @@ export declare function addPieInfo(dir: string, postInstall: PostInstall): Promi
 export declare function findInstallationResult(local: boolean, path: string, installationResult: {
     [key: string]: PostInstall;
 }): PostInstall;
-export declare function writePackageJson(dir: string, data?: {}): Promise<void>;
+export declare function writePackageJson(dir: string, data?: {}, opts?: {
+    force: boolean;
+}): Promise<void>;
 export declare function readPackage(dir: string): Promise<Package>;
 export declare function createInstallRequests(cwd: string, elements: Input[], models: Model[]): Promise<PreInstallRequest[]>;

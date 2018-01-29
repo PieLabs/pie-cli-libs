@@ -109,10 +109,19 @@ function findInstallationResult(local, path, installationResult) {
     return Object.assign({}, installationResult[k], { moduleId });
 }
 exports.findInstallationResult = findInstallationResult;
-function writePackageJson(dir, data = {}) {
+function writePackageJson(dir, data = {}, opts = {
+        force: false
+    }) {
     return __awaiter(this, void 0, void 0, function* () {
-        const info = Object.assign({ description: 'auto generated package.json', license: 'MIT', name: 'x', private: true, version: '0.0.1' }, data);
-        return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info);
+        logger.silly('[writePackageJson]: dir: ', dir);
+        const pkgPath = path_1.join(dir, 'package.json');
+        if (yield fs_extra_1.pathExists(pkgPath)) {
+            return Promise.resolve();
+        }
+        else {
+            const info = Object.assign({ description: 'auto generated package.json', license: 'MIT', name: 'x', private: true, version: '0.0.1' }, data);
+            return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info);
+        }
     });
 }
 exports.writePackageJson = writePackageJson;

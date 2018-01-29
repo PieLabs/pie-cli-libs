@@ -67,7 +67,7 @@ function yarnAdd(cwd, keys) {
 function install(cwd, keys) {
     return __awaiter(this, void 0, void 0, function* () {
         const yarnCmd = yield findYarnCmd();
-        logger.info('using yarn cmd: ', yarnCmd);
+        logger.silly('using yarn cmd: ', yarnCmd);
         logger.info('cwd: ', cwd);
         const pkg = yield fs_extra_1.readJson(path_1.join(cwd, 'package.json'));
         const outstandingKeys = removeKeysThatAreInPackage(keys, pkg);

@@ -57,7 +57,7 @@ async function yarnAdd(cwd: string, keys: string[]): Promise<void> {
 
 export async function install(cwd: string, keys: string[]): Promise<{}> {
   const yarnCmd = await findYarnCmd();
-  logger.info('using yarn cmd: ', yarnCmd);
+  logger.silly('using yarn cmd: ', yarnCmd);
 
   logger.info('cwd: ', cwd);
 

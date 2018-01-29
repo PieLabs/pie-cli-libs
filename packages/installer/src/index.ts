@@ -3,13 +3,27 @@ import RootInstaller, {
   Model,
   InstalledElement,
   findInstallationResult,
-  writePackageJson
+  writePackageJson,
+  PreInstallRequest,
+  PostInstall,
+  PieInfo,
+  Input
 } from './installer';
+
 import { Reporter } from './reporter';
 import { getLogger } from 'log-factory';
 import { join, relative } from 'path';
 import { ensureDir } from 'fs-extra';
 import { install as yarnInstall } from './yarn';
+
+export {
+  InstalledElement,
+  PreInstallRequest,
+  PostInstall,
+  Input,
+  PieInfo,
+  Reporter
+};
 
 const logger = getLogger('@pie-cli-libs/installer');
 

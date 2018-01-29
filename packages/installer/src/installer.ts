@@ -193,16 +193,27 @@ export function findInstallationResult(
   return { ...installationResult[k], moduleId };
 }
 
-export async function writePackageJson(dir: string, data: {} = {}): Promise<void> {
-  const info = {
-    description: 'auto generated package.json',
-    license: 'MIT',
-    name: 'x',
-    private: true,
-    version: '0.0.1',
-    ...data
-  };
-  return writeJson(join(dir, 'package.json'), info);
+export async function writePackageJson(dir: string, data: {} = {}, opts = {
+  force: false
+}): Promise<void> {
+
+  logger.silly('[writePackageJson]: dir: ', dir);
+
+  const pkgPath = join(dir, 'package.json');
+
+  if (await pathExists(pkgPath)) {
+    return Promise.resolve();
+  } else {
+    const info = {
+      description: 'auto generated package.json',
+      license: 'MIT',
+      name: 'x',
+      private: true,
+      version: '0.0.1',
+      ...data
+    };
+    return writeJson(join(dir, 'package.json'), info);
+  }
 }
 
 export async function readPackage(dir: string): Promise<Package> {

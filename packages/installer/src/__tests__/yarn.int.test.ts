@@ -30,6 +30,7 @@ describe('install', () => {
   let result;
 
   beforeAll(async () => {
+    setDefaultLevel('silly');
     jest.setTimeout(30000);
     target = '@pie-elements/text-entry@^0.2.2';
     logger.info('tmpPath: ', tmpPath);

@@ -3,7 +3,7 @@ import { join } from 'path';
 import { buildLogger } from 'log-factory';
 import * as spawn from 'cross-spawn';
 import * as lockfile from '@yarnpkg/lockfile';
-import { readFile, readJson } from 'fs-extra';
+import { readFile, pathExists } from 'fs-extra';
 
 const logger = buildLogger();
 
@@ -61,16 +61,58 @@ export async function install(cwd: string, keys: string[]): Promise<{}> {
 
   logger.info('cwd: ', cwd);
 
-  const pkg = await readJson(join(cwd, 'package.json'));
-  const outstandingKeys = removeKeysThatAreInPackage(keys, pkg);
-
+  /**
+   * cant use package.json because the
+   * module and id may not match the install path.
+   * const outstandingKeys = removeKeysThatAreInPackage(keys, pkg);
+   */
+  const outstandingKeys = await removeKeysThatAreInLockFile(keys, cwd);
+  logger.silly('outstandingKeys: ', outstandingKeys);
   // if there are any keys not in the package.json add them.
   await yarnAdd(cwd, outstandingKeys);
   // always run an install...
+  // if there are any keys not in the package.json add them.
   await yarnInstall(cwd);
-  const file = await readFile(join(cwd, 'yarn.lock'), 'utf8');
-  const json = lockfile.parse(file);
-  return json.object;
+  logger.silly('read lock file...');
+  return readYarnLock(cwd);
+}
+
+export async function readYarnLock(cwd: string): Promise<{}> {
+
+  const yarnLockPath = join(cwd, 'yarn.lock');
+  const exists = await pathExists(yarnLockPath);
+
+  logger.info(yarnLockPath, 'exists? ', exists);
+
+  if (exists) {
+    const file = await readFile(yarnLockPath, 'utf8');
+    const parsed = lockfile.parse(file);
+    return parsed.object;
+  } else {
+    logger.warning('!!!! ');
+    return Promise.reject(new Error(`no yarn file: ${yarnLockPath}`));
+  }
+}
+
+export async function removeKeysThatAreInLockFile(keys: string[], cwd: string): Promise<string[]> {
+  try {
+    const yarnLock = await readYarnLock(cwd);
+    return keys.filter(k => !inYarnLock(yarnLock, k));
+  } catch (e) {
+    logger.info('got the error return []');
+    return keys;
+  }
+}
+
+export function inYarnLock(yarn: any, key: string): boolean {
+
+  const yarnKeys = Object.keys(yarn);
+
+  const match = yarnKeys.find(yk => {
+    return yk === key || yk.startsWith(`${key}@`) || yk.endsWith(`@${key}`);
+  });
+
+  return match !== undefined;
 }
 
 export function removeKeysThatAreInPackage(keys: string[], pkg: {

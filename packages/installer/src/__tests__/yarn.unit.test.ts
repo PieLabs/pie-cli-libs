@@ -1,4 +1,4 @@
-import { removeKeysThatAreInPackage, inDependencies } from "../yarn";
+import { removeKeysThatAreInPackage, inDependencies, inYarnLock } from "../yarn";
 import { setDefaultLevel } from "log-factory";
 
 beforeAll(() => {
@@ -17,7 +17,6 @@ describe('inDependencies', () => {
   };
 
   const assertIn = _assert(false);
-  const assertInOnly = _assert(true);
 
   assertIn({ moduleId: '../..' }, '../..', true);
   assertIn({ moduleId: '../..' }, '../../..', false);
@@ -27,6 +26,24 @@ describe('inDependencies', () => {
   assertIn({ moduleId: '*' }, 'other@*', false);
   assertIn({ '@scope/pkg': '~2.0.1' }, '@scope/pkg@~2.0.1', true);
 
+});
+
+describe('inYarnLock', () => {
+
+  // tslint:disable-next-line:variable-name
+  const _assert = only => (yarn, target, expected) => {
+    const fn = only ? it.only : it;
+    fn(`returns ${expected} for ${target} -> ${JSON.stringify(yarn)}`, () => {
+      expect(inYarnLock(yarn, target)).toEqual(expected);
+    });
+  };
+
+  const assertIn = _assert(false);
+  assertIn({}, '../..', false);
+  assertIn({ '@scope/pkg@../..': {} }, '../..', true);
+  assertIn({ '@scope/pkg@^1.0.0': {} }, '@scope/pkg@^1.0.0', true);
+  assertIn({ '@scope/pkg@^2.0.0': {} }, '@scope/pkg', true);
+  assertIn({ 'log-factory@PieLabs/log-factory': {} }, 'PieLabs/log-factory', true);
 });
 
 describe('removeKeysThatAreInPackage', () => {

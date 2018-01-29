@@ -69,16 +69,53 @@ function install(cwd, keys) {
         const yarnCmd = yield findYarnCmd();
         logger.silly('using yarn cmd: ', yarnCmd);
         logger.info('cwd: ', cwd);
-        const pkg = yield fs_extra_1.readJson(path_1.join(cwd, 'package.json'));
-        const outstandingKeys = removeKeysThatAreInPackage(keys, pkg);
+        const outstandingKeys = yield removeKeysThatAreInLockFile(keys, cwd);
+        logger.silly('outstandingKeys: ', outstandingKeys);
         yield yarnAdd(cwd, outstandingKeys);
         yield yarnInstall(cwd);
-        const file = yield fs_extra_1.readFile(path_1.join(cwd, 'yarn.lock'), 'utf8');
-        const json = lockfile.parse(file);
-        return json.object;
+        logger.silly('read lock file...');
+        return readYarnLock(cwd);
     });
 }
 exports.install = install;
+function readYarnLock(cwd) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const yarnLockPath = path_1.join(cwd, 'yarn.lock');
+        const exists = yield fs_extra_1.pathExists(yarnLockPath);
+        logger.info(yarnLockPath, 'exists? ', exists);
+        if (exists) {
+            const file = yield fs_extra_1.readFile(yarnLockPath, 'utf8');
+            const parsed = lockfile.parse(file);
+            return parsed.object;
+        }
+        else {
+            logger.warning('!!!! ');
+            return Promise.reject(new Error(`no yarn file: ${yarnLockPath}`));
+        }
+    });
+}
+exports.readYarnLock = readYarnLock;
+function removeKeysThatAreInLockFile(keys, cwd) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const yarnLock = yield readYarnLock(cwd);
+            return keys.filter(k => !inYarnLock(yarnLock, k));
+        }
+        catch (e) {
+            logger.info('got the error return []');
+            return keys;
+        }
+    });
+}
+exports.removeKeysThatAreInLockFile = removeKeysThatAreInLockFile;
+function inYarnLock(yarn, key) {
+    const yarnKeys = Object.keys(yarn);
+    const match = yarnKeys.find(yk => {
+        return yk === key || yk.startsWith(`${key}@`) || yk.endsWith(`@${key}`);
+    });
+    return match !== undefined;
+}
+exports.inYarnLock = inYarnLock;
 function removeKeysThatAreInPackage(keys, pkg) {
     return keys.filter(k => {
         const defined = exports.inDependencies(pkg.dependencies, k);

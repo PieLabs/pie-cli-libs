@@ -2,14 +2,26 @@
 
 For installing dependencies of a [pie][p] item.
 
-## requirements
+## build
 
-This package requires yarn `^1.3.2`. add as a dependency?
+```shell
+npm run build
+```
+
+## test
+```shell
+npm test # unit tests
+npm run integration-test # integration tests (slower)
+```
+
+## publish
+
+See the main readme.
 
 
-##
+## Item Configuration
 
-config: 
+A pie item will have the following configuration: 
 
 ```javascript
 {
@@ -32,7 +44,7 @@ config:
 }
 ```
 
-Using the above [pie][p] `item` definition, the install will install the dependencies needed and will return information on the installation.
+Using the above [pie][p] `item` definition, `install` will install the dependencies needed and will return information on the installation.
 
 The installation directory will look like so: 
 

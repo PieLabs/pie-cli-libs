@@ -72,4 +72,4 @@ It'll return an array of objects similar to:
 }
 ```
 
-[pie]: http://pie-framework.org
+[p]: http://pie-framework.org

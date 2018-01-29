@@ -5,6 +5,7 @@ const logger = buildLogger();
 
 beforeAll(() => {
   setDefaultLevel('silly');
+  logger.info('set to silly');
 });
 
 describe('createInstallRequests', () => {

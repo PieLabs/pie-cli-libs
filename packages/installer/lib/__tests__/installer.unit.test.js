@@ -12,6 +12,7 @@ const log_factory_1 = require("log-factory");
 const logger = log_factory_1.buildLogger();
 beforeAll(() => {
     log_factory_1.setDefaultLevel('silly');
+    logger.info('set to silly');
 });
 describe('createInstallRequests', () => {
     let mockFs;
@@ -49,13 +50,31 @@ describe('createInstallRequests', () => {
                 hasModel: true,
                 local: true,
                 type: 'package',
-                package: {
-                    name: '@scope/package',
-                    version: '1.0.0'
-                },
                 value: '..'
             }
         ]);
     }));
+});
+describe('findInstallationResult', () => {
+    let findInstallationResult;
+    beforeEach(() => {
+        findInstallationResult = require('../installer').findInstallationResult;
+    });
+    it('finds remote', () => {
+        const out = findInstallationResult(false, '@scope/pkg@^0.2.2', {
+            '@scope/pkg@^0.2.2': {
+                version: '0.2.3'
+            }
+        });
+        expect(out).toEqual({ version: '0.2.3', moduleId: '@scope/pkg' });
+    });
+    it('finds local', () => {
+        const out = findInstallationResult(true, 'path', {
+            '@scope/pkg@path': {
+                version: '1.0.0'
+            }
+        });
+        expect(out).toEqual({ version: '1.0.0', moduleId: '@scope/pkg' });
+    });
 });
 //# sourceMappingURL=installer.unit.test.js.map

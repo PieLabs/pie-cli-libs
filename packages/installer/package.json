@@ -6,6 +6,11 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "test": "./node_modules/.bin/jest unit",
+    "integration-test": "./node_modules/.bin/jest int",
+    "build": "rm -fr lib && ./node_modules/.bin/tsc"
+  },
   "dependencies": {
     "@yarnpkg/lockfile": "^1.0.0",
     "cross-spawn": "^6.0.3",
@@ -38,7 +43,7 @@
       "^.+\\.(ts|tsx)$": "<rootDir>/preprocessor.js"
     },
     "testMatch": [
-      "**/__test__/**/*.ts"
+      "**/__tests__/**/*.ts"
     ]
   }
 }

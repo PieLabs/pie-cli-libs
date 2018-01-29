@@ -45,7 +45,7 @@ class RootInstaller {
             });
             const packages = mapped.filter(r => r.type === 'package');
             logger.debug('writing package.json..');
-            yield writePackageJson(this.installationDir);
+            yield this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
             logger.debug('writing package.json..done');
             const installationResult = yield yarn_1.install(this.installationDir, packages.map(r => r.value));
             const out = _.zipWith(inputs, mapped, (input, preInstall) => __awaiter(this, void 0, void 0, function* () {
@@ -53,14 +53,14 @@ class RootInstaller {
                 return {
                     element: input.element,
                     input,
+                    pie: yield addPieInfo(this.installationDir, postInstall),
                     postInstall,
                     preInstall,
-                    pie: yield addPieInfo(this.installationDir, postInstall)
                 };
             }));
             logger.silly('out', out);
             return Promise.all(out)
-                .then(elements => ({ dir: this.installationDir, elements }));
+                .then(e => ({ dir: this.installationDir, elements: e }));
         });
     }
 }
@@ -87,23 +87,31 @@ function addPieInfo(dir, postInstall) {
 }
 exports.addPieInfo = addPieInfo;
 function findInstallationResult(local, path, installationResult) {
-    const findKey = (k) => {
+    const findKey = (s) => {
         if (local) {
-            return k.endsWith(`@${path}`);
+            return s.endsWith(`@${path}`);
         }
         else {
-            return path === k;
+            return path === s;
+        }
+    };
+    const getModuleId = (s) => {
+        if (local) {
+            return s.replace(`@${path}`, '');
+        }
+        else {
+            return s.substr(0, s.lastIndexOf('@'));
         }
     };
     const k = Object.keys(installationResult).find(findKey);
-    const moduleId = k.replace(`@${path}`, '');
+    const moduleId = getModuleId(k);
     return Object.assign({}, installationResult[k], { moduleId });
 }
 exports.findInstallationResult = findInstallationResult;
 function writePackageJson(dir, data = {}) {
     return __awaiter(this, void 0, void 0, function* () {
-        const info = Object.assign({ name: 'x', description: 'auto generated package.json', private: true, version: '0.0.1' }, data);
-        return yield fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info);
+        const info = Object.assign({ description: 'auto generated package.json', name: 'x', private: true, version: '0.0.1' }, data);
+        return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info);
     });
 }
 exports.writePackageJson = writePackageJson;

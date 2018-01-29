@@ -18,8 +18,8 @@ const logger = log_factory_1.buildLogger();
 const mkLocalPackage = (dir, name, pkg = {}) => __awaiter(this, void 0, void 0, function* () {
     const path = path_1.join(dir, name);
     yield fs_extra_1.ensureDir(path);
-    const data = Object.assign({ name: `@scope/${name}`, version: '1.0.0', description: 'just a tester', license: 'MIT', dependencies: {} }, pkg);
-    return yield installer_1.writePackageJson(path, data);
+    const data = Object.assign({ dependencies: {}, description: 'just a tester', license: 'MIT', name: `@scope/${name}`, version: '1.0.0' }, pkg);
+    return installer_1.writePackageJson(path, data);
 });
 const mkLocalPiePackage = (dir, name) => __awaiter(this, void 0, void 0, function* () {
     yield mkLocalPackage(dir, name, { name: `@scope/${name}` });
@@ -28,7 +28,7 @@ const mkLocalPiePackage = (dir, name) => __awaiter(this, void 0, void 0, functio
 });
 const reporter = {
     promise: (msg, p) => {
-        logger.silly('msg: ', msg);
+        logger.silly('>>>>>>>>>>>>>>>>>> msg: ', msg);
         return p;
     }
 };
@@ -36,14 +36,14 @@ describe('installer', () => {
     let tmpPath = null;
     beforeAll((done) => {
         jest.setTimeout(30000);
-        log_factory_1.setDefaultLevel('silly');
+        log_factory_1.setDefaultLevel('debug');
         temp.mkdir('installer-', (err, path) => {
             tmpPath = path;
             done(err);
         });
     });
     describe('install', () => {
-        it('installs remote package w/ set verision', () => __awaiter(this, void 0, void 0, function* () {
+        it('installs remote package w/ set version', () => __awaiter(this, void 0, void 0, function* () {
             const dir = path_1.join(tmpPath, 'remote-pkg-test');
             yield fs_extra_1.ensureDir(dir);
             const result = yield __1.install(dir, { 'element-one': '@pie-elements/text-entry@^0.2.2' }, [{ element: 'element-one' }], reporter);
@@ -54,9 +54,17 @@ describe('installer', () => {
                     element: 'element-one',
                     value: '@pie-elements/text-entry@^0.2.2'
                 },
+                pie: {
+                    configure: {
+                        moduleId: '@pie-elements/text-entry-configure'
+                    },
+                    controller: {
+                        moduleId: '@pie-elements/text-entry-controller'
+                    }
+                },
                 postInstall: {
                     moduleId: '@pie-elements/text-entry'
-                }
+                },
             });
         }));
         it('installs local package', () => __awaiter(this, void 0, void 0, function* () {
@@ -67,28 +75,29 @@ describe('installer', () => {
             logger.info('result: ', result);
             expect(result.length).toEqual(1);
             const [r] = result;
+            logger.info('result >>>>> ', result);
             expect(r).toMatchObject({
                 postInstall: {
-                    moduleId: '@scope/pkg'
+                    moduleId: '@scope/local-pkg'
                 }
             });
-            expect(r).toMatchObject({ pieInfo: undefined });
+            expect(r).toMatchObject({ pie: undefined });
         }));
-        it.only('installs local pie package', () => __awaiter(this, void 0, void 0, function* () {
+        it('installs local pie package', () => __awaiter(this, void 0, void 0, function* () {
             const dir = path_1.join(tmpPath, 'local-pkg-test');
             yield fs_extra_1.ensureDir(dir);
             yield mkLocalPiePackage(tmpPath, 'local-pkg');
             const result = yield __1.install(dir, { 'element-one': '../local-pkg' }, [{ element: 'element-one' }], reporter);
-            logger.info('result: ', result);
-            expect(result).toEqual(1);
+            logger.info('result: ', JSON.stringify(result, null, '  '));
+            expect(result.length).toEqual(1);
             const [r] = result;
             expect(r).toMatchObject({
+                pie: {
+                    hasConfigurePackage: true
+                },
                 postInstall: {
                     moduleId: '@scope/local-pkg'
                 },
-                pieInfo: {
-                    hasConfigurePackage: true
-                }
             });
         }));
     });

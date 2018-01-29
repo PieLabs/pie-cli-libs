@@ -34,7 +34,6 @@ export async function install(
     'installing configure',
     installConfigure(installed.dir, installed.elements));
 
-
   return installed.elements;
 }
 

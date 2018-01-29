@@ -100,7 +100,7 @@ export default class RootInstaller {
 
     const packages = mapped.filter(r => r.type === 'package');
     logger.debug('writing package.json..');
-    await writePackageJson(this.installationDir);
+    await this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
     logger.debug('writing package.json..done');
     const installationResult = await install(this.installationDir, packages.map(r => r.value));
 

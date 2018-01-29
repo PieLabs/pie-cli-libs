@@ -20,11 +20,18 @@ function install(dir, elements, models, reporter) {
         const installer = new installer_1.default(dir, reporter);
         const installed = yield installer.install(elements, models);
         logger.silly('installed: ', JSON.stringify(installed));
-        const controllerResult = yield reporter.promise('installing controllers', installControllers(installed.dir, installed.elements));
+        yield reporter.promise('installing controllers', installControllers(installed.dir, installed.elements));
+        yield reporter.promise('installing configure', installConfigure(installed.dir, installed.elements));
         return installed.elements;
     });
 }
 exports.install = install;
+function installConfigure(dir, result) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const pies = result.filter(r => r.pie !== undefined);
+        return installPieSubPackage(dir, pies, 'configure', path_1.join(dir, '.configure'));
+    });
+}
 function installControllers(dir, result) {
     return __awaiter(this, void 0, void 0, function* () {
         const pies = result.filter(r => r.pie !== undefined);
@@ -56,7 +63,7 @@ function installPieSubPackage(rootDir, installed, packageName, installDir) {
         logger.silly('[installPieSubPackage] installResult', installResult);
         installed.forEach(p => {
             if (p.pie) {
-                const rd = relativeDependencies.find(rd => rd.moduleId === p.postInstall.moduleId);
+                const rd = relativeDependencies.find(d => d.moduleId === p.postInstall.moduleId);
                 logger.silly('relative dependency: ', rd);
                 const ir = installer_1.findInstallationResult(true, rd.path, installResult);
                 logger.silly('install result: ', ir);

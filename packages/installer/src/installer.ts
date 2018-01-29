@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import * as semver from 'semver';
-import { install, idAndTarget } from './yarn';
+import { install } from './yarn';
 
 import { ensureDirSync, existsSync, stat, pathExists, readJson, writeJson } from 'fs-extra';
 import { join, resolve } from 'path';
@@ -52,21 +52,25 @@ const logger = buildLogger();
 
 export type ElementMap = {
   [key: string]: string
-}
+};
 
 export type Model = {
   element: string
-}
+};
 
 export type Package = {
   name: string,
   version: string
-}
+};
+
 export type Models = Model[];
 
+/**
+ * Root installer - installs main packages.
+ */
 export default class RootInstaller {
 
-  readonly installationDir: string;
+  private readonly installationDir: string;
 
   constructor(private cwd: string, private reporter: Reporter) {
 
@@ -86,7 +90,6 @@ export default class RootInstaller {
     const inputs: Input[] = _.map(elements, (value, element) => ({ element, value }));
     const requests: PreInstallRequest[] = await createInstallRequests(this.cwd, inputs, models);
 
-    //Note: adjust to the local value to match the installation dir which is 1 level down.
     const mapped = requests.map(r => {
       if (r.local) {
         return { ...r, value: `../${r.value}` };
@@ -96,7 +99,7 @@ export default class RootInstaller {
     });
 
     const packages = mapped.filter(r => r.type === 'package');
-    logger.debug('writing package.json..')
+    logger.debug('writing package.json..');
     await writePackageJson(this.installationDir);
     logger.debug('writing package.json..done');
     const installationResult = await install(this.installationDir, packages.map(r => r.value));
@@ -110,21 +113,21 @@ export default class RootInstaller {
       return {
         element: input.element,
         input,
+        pie: await addPieInfo(this.installationDir, postInstall),
         postInstall,
         preInstall,
-        pie: await addPieInfo(this.installationDir, postInstall)
-      }
+      };
     });
     logger.silly('out', out);
     return Promise.all(out)
-      .then(elements => ({ dir: this.installationDir, elements }));
+      .then(e => ({ dir: this.installationDir, elements: e }));
   }
 }
 
 /**
- * Add stub pie information - hasController 
- * @param dir 
- * @param postInstall 
+ * Add stub pie information - hasController
+ * @param dir
+ * @param postInstall
  */
 export async function addPieInfo(dir: string, postInstall: PostInstall): Promise<PieInfo | undefined> {
 
@@ -146,40 +149,49 @@ export async function addPieInfo(dir: string, postInstall: PostInstall): Promise
 }
 
 /**
- * TODO: need to check if the yarn key ends with the 
- * install target eg: 
+ * TODO: need to check if the yarn key ends with the
+ * install target eg
  * name@target // -> ends with @target then use the name.
- * instead of trying to split @ cos there could be multiple in the key. 
+ * instead of trying to split @ cos there could be multiple in the key.
  * @param local T
- * @param path 
- * @param installationResult 
+ * @param path
+ * @param installationResult
  */
-export function findInstallationResult(local: boolean, path: string, installationResult: { [key: string]: PostInstall }): PostInstall {
+export function findInstallationResult(
+  local: boolean,
+  path: string,
+  installationResult: { [key: string]: PostInstall }): PostInstall {
 
-  const findKey = (k: string) => {
-    const idt = idAndTarget(k);
+  const findKey = (s: string) => {
     if (local) {
-      k.endsWith(path)
-      return path === idt.target;
+      return s.endsWith(`@${path}`);
     } else {
-      return path === k;
+      return path === s;
     }
-  }
+  };
+
+  const getModuleId = (s: string) => {
+    if (local) {
+      return s.replace(`@${path}`, '');
+    } else {
+      return s.substr(0, s.lastIndexOf('@'));
+    }
+  };
 
   const k = Object.keys(installationResult).find(findKey);
-  const idt = idAndTarget(k);
-  return { ...installationResult[k], moduleId: idt.id }
+  const moduleId = getModuleId(k);
+  return { ...installationResult[k], moduleId };
 }
 
-export async function writePackageJson(dir: string, data: {} = {}) {
+export async function writePackageJson(dir: string, data: {} = {}): Promise<void> {
   const info = {
-    name: 'x',
     description: 'auto generated package.json',
+    name: 'x',
     private: true,
     version: '0.0.1',
     ...data
-  }
-  return await writeJson(join(dir, 'package.json'), info);
+  };
+  return writeJson(join(dir, 'package.json'), info);
 }
 
 export async function readPackage(dir: string): Promise<Package> {
@@ -189,15 +201,15 @@ export async function readPackage(dir: string): Promise<Package> {
     return {
       name: raw.name,
       version: raw.version
-    }
+    };
   }
 }
 
 /**
- * add information about the package to install. 
- * @param cwd 
- * @param elements 
- * @param models 
+ * add information about the package to install.
+ * @param cwd
+ * @param elements
+ * @param models
  */
 export async function createInstallRequests(
   cwd: string,
@@ -239,4 +251,3 @@ export async function createInstallRequests(
 
   return Promise.all(mapped);
 }
-

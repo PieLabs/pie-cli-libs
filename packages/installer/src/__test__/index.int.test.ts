@@ -1,5 +1,6 @@
 import { install } from '..';
 import { setDefaultLevel, buildLogger } from 'log-factory';
+// tslint:disable-next-line:no-implicit-dependencies
 import * as temp from 'temp';
 import { ensureDir } from 'fs-extra';
 import { join } from 'path';
@@ -12,28 +13,28 @@ const mkLocalPackage = async (dir: string, name: string, pkg: any = {}) => {
   await ensureDir(path);
 
   const data = {
-    name: `@scope/${name}`,
-    version: '1.0.0',
+    dependencies: {},
     description: 'just a tester',
     license: 'MIT',
-    dependencies: {},
+    name: `@scope/${name}`,
+    version: '1.0.0',
     ...pkg
-  }
-  return await writePackageJson(path, data);
-}
+  };
+  return writePackageJson(path, data);
+};
 
 const mkLocalPiePackage = async (dir: string, name: string) => {
   await mkLocalPackage(dir, name, { name: `@scope/${name}` });
   await mkLocalPackage(join(dir, name), 'controller', { name: `@scope/${name}-controller` });
   await mkLocalPackage(join(dir, name), 'configure', { name: `@scope/${name}-configure` });
-}
+};
 
 const reporter = {
   promise: (msg, p) => {
-    logger.silly('msg: ', msg);
+    logger.silly('>>>>>>>>>>>>>>>>>> msg: ', msg);
     return p;
   }
-}
+};
 
 describe('installer', () => {
 
@@ -42,7 +43,7 @@ describe('installer', () => {
   beforeAll((done) => {
 
     jest.setTimeout(30000);
-    setDefaultLevel('silly');
+    setDefaultLevel('debug');
 
     temp.mkdir('installer-', (err, path) => {
       tmpPath = path;
@@ -52,17 +53,18 @@ describe('installer', () => {
 
   describe('install', () => {
 
-
-    it('installs remote package w/ set verision', async () => {
+    it('installs remote package w/ set version', async () => {
 
       const dir = join(tmpPath, 'remote-pkg-test');
       await ensureDir(dir);
+
       const result = await install(
         dir,
         { 'element-one': '@pie-elements/text-entry@^0.2.2' },
         [{ element: 'element-one' }],
         reporter
       );
+
       expect(result.length).toEqual(1);
       const [one] = result;
 
@@ -71,9 +73,17 @@ describe('installer', () => {
           element: 'element-one',
           value: '@pie-elements/text-entry@^0.2.2'
         },
+        pie: {
+          configure: {
+            moduleId: '@pie-elements/text-entry-configure'
+          },
+          controller: {
+            moduleId: '@pie-elements/text-entry-controller'
+          }
+        },
         postInstall: {
           moduleId: '@pie-elements/text-entry'
-        }
+        },
       });
     });
 
@@ -92,15 +102,16 @@ describe('installer', () => {
       expect(result.length).toEqual(1);
 
       const [r] = result;
+      logger.info('result >>>>> ', result);
       expect(r).toMatchObject({
         postInstall: {
-          moduleId: '@scope/pkg'
+          moduleId: '@scope/local-pkg'
         }
       });
-      expect(r).toMatchObject({ pieInfo: undefined });
+      expect(r).toMatchObject({ pie: undefined });
     });
 
-    it.only('installs local pie package', async () => {
+    it('installs local pie package', async () => {
       const dir = join(tmpPath, 'local-pkg-test');
       await ensureDir(dir);
       await mkLocalPiePackage(tmpPath, 'local-pkg');
@@ -111,16 +122,16 @@ describe('installer', () => {
         reporter
       );
 
-      logger.info('result: ', result);
-      expect(result).toEqual(1);
+      logger.info('result: ', JSON.stringify(result, null, '  '));
+      expect(result.length).toEqual(1);
       const [r] = result;
       expect(r).toMatchObject({
+        pie: {
+          hasConfigurePackage: true
+        },
         postInstall: {
           moduleId: '@scope/local-pkg'
         },
-        pieInfo: {
-          hasConfigurePackage: true
-        }
       });
     });
   });

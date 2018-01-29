@@ -50,6 +50,7 @@ class RootInstaller {
             const installationResult = yield yarn_1.install(this.installationDir, packages.map(r => r.value));
             const out = _.zipWith(inputs, mapped, (input, preInstall) => __awaiter(this, void 0, void 0, function* () {
                 const postInstall = findInstallationResult(preInstall.local, preInstall.value, installationResult);
+                postInstall.dir = this.installationDir;
                 return {
                     element: input.element,
                     input,

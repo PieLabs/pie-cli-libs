@@ -7,7 +7,9 @@ import RootInstaller, {
   PreInstallRequest,
   PostInstall,
   PieInfo,
-  Input
+  Input,
+  PackageType,
+  Dirs
 } from './installer';
 
 import { Reporter } from './reporter';
@@ -17,12 +19,14 @@ import { ensureDir } from 'fs-extra';
 import { install as yarnInstall } from './yarn';
 
 export {
+  Dirs,
   InstalledElement,
   PreInstallRequest,
   PostInstall,
   Input,
   PieInfo,
-  Reporter
+  Reporter,
+  PackageType
 };
 
 const logger = getLogger('@pie-cli-libs/installer');
@@ -31,7 +35,7 @@ export async function install(
   dir: string,
   elements: ElementMap,
   models: Model[],
-  reporter: Reporter): Promise<InstalledElement[]> {
+  reporter: Reporter): Promise<{ dirs: Dirs, installed: InstalledElement[] }> {
 
   logger.silly('dir:', dir);
 
@@ -48,7 +52,16 @@ export async function install(
     'installing configure',
     installConfigure(installed.dir, installed.elements));
 
-  return installed.elements;
+  const dirs: Dirs = {
+    configure: join(installer.installationDir, '.configure'),
+    controllers: join(installer.installationDir, '.controller'),
+    root: installer.installationDir
+  };
+
+  return {
+    dirs,
+    installed: installed.elements
+  };
 }
 
 async function installConfigure(dir: string, result: InstalledElement[]): Promise<any> {

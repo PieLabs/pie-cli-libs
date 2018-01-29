@@ -3,6 +3,11 @@ export declare enum PackageType {
     FILE = "file",
     PACKAGE = "package",
 }
+export declare type Dirs = {
+    configure: string;
+    controllers: string;
+    root: string;
+};
 export declare type Input = {
     element: string;
     value: string;
@@ -18,6 +23,7 @@ export declare type PreInstallRequest = {
     };
 };
 export declare type PostInstall = {
+    dir: string;
     moduleId: string;
     version: string;
     resolved: string;
@@ -57,7 +63,7 @@ export declare type Models = Model[];
 export default class RootInstaller {
     private cwd;
     private reporter;
-    private readonly installationDir;
+    readonly installationDir: string;
     constructor(cwd: string, reporter: Reporter);
     install(elements: ElementMap, models: Model[]): Promise<{
         dir: string;

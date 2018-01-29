@@ -13,6 +13,12 @@ export enum PackageType {
   PACKAGE = 'package'
 }
 
+export type Dirs = {
+  configure: string,
+  controllers: string,
+  root: string
+};
+
 export type Input = {
   element: string,
   value: string
@@ -28,6 +34,7 @@ export type PreInstallRequest = {
 };
 
 export type PostInstall = {
+  dir: string,
   moduleId: string,
   version: string,
   resolved: string,
@@ -70,7 +77,7 @@ export type Models = Model[];
  */
 export default class RootInstaller {
 
-  private readonly installationDir: string;
+  public readonly installationDir: string;
 
   constructor(private cwd: string, private reporter: Reporter) {
 
@@ -110,6 +117,8 @@ export default class RootInstaller {
         preInstall.value,
         installationResult);
 
+      postInstall.dir = this.installationDir;
+
       return {
         element: input.element,
         input,
@@ -118,6 +127,7 @@ export default class RootInstaller {
         preInstall,
       };
     });
+
     logger.silly('out', out);
     return Promise.all(out)
       .then(e => ({ dir: this.installationDir, elements: e }));

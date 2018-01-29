@@ -16,7 +16,9 @@ const lockfile = require("@yarnpkg/lockfile");
 const fs_extra_1 = require("fs-extra");
 const logger = log_factory_1.buildLogger();
 const findYarnCmd = () => {
-    return findUp('node_modules')
+    return findUp('node_modules', {
+        cwd: __dirname
+    })
         .then(np => {
         return path_1.join(np, '.bin', 'yarn');
     });
@@ -25,27 +27,57 @@ function install(cwd, keys) {
     return __awaiter(this, void 0, void 0, function* () {
         const yarnCmd = yield findYarnCmd();
         logger.info('using yarn cmd: ', yarnCmd);
-        const args = ['add', ...keys];
         logger.info('cwd: ', cwd);
-        logger.silly('args: ', args);
-        return new Promise((resolve, reject) => {
-            spawn(yarnCmd, args, { cwd, stdio: 'inherit' })
-                .on('error', reject)
-                .on('close', (code, err) => __awaiter(this, void 0, void 0, function* () {
-                if (err) {
-                    reject(err);
+        const notInPkg = (deps) => (key) => {
+            const keyList = Object.keys(deps);
+            keyList.find(k => {
+                const value = deps[k];
+                if (key === value) {
+                    return true;
                 }
                 else {
-                    logger.info('success code: ', code, cwd);
-                    let file = yield fs_extra_1.readFile(path_1.join(cwd, 'yarn.lock'), 'utf8');
-                    let json = lockfile.parse(file);
-                    resolve(json.object);
+                    const lastAtIndex = key.lastIndexOf('@');
+                    if (lastAtIndex > 0) {
+                        const v = k.substring(lastAtIndex);
+                    }
                 }
-            }));
-        });
+            });
+            if (deps) {
+            }
+            return true;
+        };
+        const pkg = yield fs_extra_1.readJson(path_1.join(cwd, 'package.json'));
+        const outstandingKeys = keys.filter(k => notInPkg(pkg.dependencies));
+        const o = yield yarnInstall();
+        if (outstandingKeys.length > 0) {
+            const args = ['add', ...outstandingKeys];
+            logger.silly('args: ', args);
+            return new Promise((resolve, reject) => {
+                spawn(yarnCmd, args, { cwd, stdio: 'inherit' })
+                    .on('error', reject)
+                    .on('close', (code, err) => __awaiter(this, void 0, void 0, function* () {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        logger.info('success code: ', code, cwd);
+                        let file = yield fs_extra_1.readFile(path_1.join(cwd, 'yarn.lock'), 'utf8');
+                        let json = lockfile.parse(file);
+                        resolve(json.object);
+                    }
+                }));
+            });
+        }
+        else {
+            return {};
+        }
     });
 }
 exports.install = install;
+function removeKeysThatAreInPackage(keys, pkg) {
+    return [];
+}
+exports.removeKeysThatAreInPackage = removeKeysThatAreInPackage;
 exports.idAndTarget = (k) => {
     const index = k.lastIndexOf('@');
     if (index === -1) {

@@ -54,7 +54,7 @@ export async function install(
 
   const dirs: Dirs = {
     configure: join(installer.installationDir, '.configure'),
-    controllers: join(installer.installationDir, '.controller'),
+    controllers: join(installer.installationDir, '.controllers'),
     root: installer.installationDir
   };
 

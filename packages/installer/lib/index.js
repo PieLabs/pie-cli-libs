@@ -19,10 +19,13 @@ function install(dir, elements, models, reporter) {
     return __awaiter(this, void 0, void 0, function* () {
         logger.silly('dir:', dir);
         const installer = new installer_1.default(dir, reporter);
+        reporter.info('installing root...');
         const installed = yield installer.install(elements, models);
         logger.silly('installed: ', JSON.stringify(installed));
-        yield reporter.promise('installing controllers', installControllers(installed.dir, installed.elements));
-        yield reporter.promise('installing configure', installConfigure(installed.dir, installed.elements));
+        reporter.info('installing controllers...');
+        yield installControllers(installed.dir, installed.elements);
+        reporter.info('installing configure...');
+        yield installConfigure(installed.dir, installed.elements);
         const dirs = {
             configure: path_1.join(installer.installationDir, '.configure'),
             controllers: path_1.join(installer.installationDir, '.controllers'),

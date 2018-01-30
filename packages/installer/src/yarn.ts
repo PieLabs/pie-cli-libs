@@ -16,10 +16,19 @@ const findYarnCmd = () => {
     });
 };
 
-async function yarnInstall(cwd: string): Promise<void> {
-  const yarnCmd = await findYarnCmd();
+const sp = async (cwd: string, args: string[]): Promise<void> => {
+  const cmd = await findYarnCmd();
+  logger.silly('cmd: ', cmd);
   return new Promise<void>((resolve, reject) => {
-    spawn(yarnCmd, ['install'], { cwd, stdio: 'inherit' })
+
+    // aka inherit
+    const stdio = [
+      process.stdin,
+      process.stdout,
+      process.stderr
+    ];
+
+    spawn(cmd, args, { cwd, stdio })
       .on('error', reject)
       .on('close', async (code, err) => {
         if (err) {
@@ -29,37 +38,27 @@ async function yarnInstall(cwd: string): Promise<void> {
         }
       });
   });
+
+};
+
+function yarnInstall(cwd: string): Promise<void> {
+  return sp(cwd, ['install']);
 }
 
-async function yarnAdd(cwd: string, keys: string[]): Promise<void> {
-
-  const yarnCmd = await findYarnCmd();
-
+function yarnAdd(cwd: string, keys: string[]): Promise<void> {
   if (!keys || keys.length === 0) {
     return Promise.resolve();
   } else {
     const args = ['add', ...keys];
-
     logger.silly('args: ', args);
-    return new Promise<void>((resolve, reject) => {
-      spawn(yarnCmd, args, { cwd, stdio: 'inherit' })
-        .on('error', reject)
-        .on('close', (code, err) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve();
-          }
-        });
-    });
+    return sp(cwd, args);
   }
 }
 
 export async function install(cwd: string, keys: string[]): Promise<{}> {
   const yarnCmd = await findYarnCmd();
   logger.silly('using yarn cmd: ', yarnCmd);
-
-  logger.info('cwd: ', cwd);
+  logger.silly('cwd: ', cwd);
 
   /**
    * cant use package.json because the
@@ -71,9 +70,7 @@ export async function install(cwd: string, keys: string[]): Promise<{}> {
   // if there are any keys not in the package.json add them.
   await yarnAdd(cwd, outstandingKeys);
   // always run an install...
-  // if there are any keys not in the package.json add them.
   await yarnInstall(cwd);
-  logger.silly('read lock file...');
   return readYarnLock(cwd);
 }
 
@@ -82,14 +79,13 @@ export async function readYarnLock(cwd: string): Promise<{}> {
   const yarnLockPath = join(cwd, 'yarn.lock');
   const exists = await pathExists(yarnLockPath);
 
-  logger.info(yarnLockPath, 'exists? ', exists);
+  logger.silly(yarnLockPath, 'exists? ', exists);
 
   if (exists) {
     const file = await readFile(yarnLockPath, 'utf8');
     const parsed = lockfile.parse(file);
     return parsed.object;
   } else {
-    logger.warning('!!!! ');
     return Promise.reject(new Error(`no yarn file: ${yarnLockPath}`));
   }
 }
@@ -99,7 +95,7 @@ export async function removeKeysThatAreInLockFile(keys: string[], cwd: string): 
     const yarnLock = await readYarnLock(cwd);
     return keys.filter(k => !inYarnLock(yarnLock, k));
   } catch (e) {
-    logger.info('got the error return []');
+    logger.silly('[removeKeysThatAreInLockFile] got the error return []');
     return keys;
   }
 }

@@ -4,11 +4,9 @@ import { mkdir } from 'temp';
 import { writePackageJson } from '../installer';
 import { buildLogger, setDefaultLevel } from 'log-factory';
 
-const logger = buildLogger();
+setDefaultLevel('info');
 
-beforeAll(() => {
-  setDefaultLevel('silly');
-});
+const logger = buildLogger();
 
 const mkdirAsync = (prefix: string): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -30,7 +28,6 @@ describe('install', () => {
   let result;
 
   beforeAll(async () => {
-    setDefaultLevel('silly');
     jest.setTimeout(30000);
     target = '@pie-elements/text-entry@^0.2.2';
     logger.info('tmpPath: ', tmpPath);
@@ -42,7 +39,7 @@ describe('install', () => {
       });
   });
 
-  it('installs npm dependency', () => {
+  it.only('installs npm dependency', () => {
     expect(result[target]).toBeDefined();
   });
 

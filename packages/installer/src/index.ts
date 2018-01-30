@@ -40,17 +40,16 @@ export async function install(
   logger.silly('dir:', dir);
 
   const installer = new RootInstaller(dir, reporter);
+  reporter.info('installing root...');
   const installed = await installer.install(elements, models);
 
   logger.silly('installed: ', JSON.stringify(installed));
 
-  await reporter.promise(
-    'installing controllers',
-    installControllers(installed.dir, installed.elements));
+  reporter.info('installing controllers...');
+  await installControllers(installed.dir, installed.elements);
 
-  await reporter.promise(
-    'installing configure',
-    installConfigure(installed.dir, installed.elements));
+  reporter.info('installing configure...');
+  await installConfigure(installed.dir, installed.elements);
 
   const dirs: Dirs = {
     configure: join(installer.installationDir, '.configure'),

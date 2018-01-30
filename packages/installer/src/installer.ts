@@ -246,7 +246,6 @@ export async function createInstallRequests(
     logger.silly('path exists: ', e);
 
     if (e) {
-      // const pkg: Package | undefined = await readPackage(resolvedPath);
       const statInfo = await stat(resolvedPath);
       const hasModel = _.some(models, m => m.element === element);
       return {
@@ -254,18 +253,15 @@ export async function createInstallRequests(
         hasModel,
         local: true,
         type: statInfo.isFile() ? PackageType.FILE : PackageType.PACKAGE,
-        // package: pkg,
         value
       };
     } else {
       const v = semver.validRange(value) ? `${element}@${value}` : value;
-      // const pkg = toPackageInfo(v);
       return {
         element,
         hasModel: _.some(models, m => m.element === element),
         local: false,
         type: PackageType.PACKAGE,
-        // package: pkg,
         value: v
       };
     }

@@ -23,57 +23,49 @@ const findYarnCmd = () => {
         return path_1.join(np, '.bin', 'yarn');
     });
 };
-function yarnInstall(cwd) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const yarnCmd = yield findYarnCmd();
-        return new Promise((resolve, reject) => {
-            spawn(yarnCmd, ['install'], { cwd, stdio: 'inherit' })
-                .on('error', reject)
-                .on('close', (code, err) => __awaiter(this, void 0, void 0, function* () {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve();
-                }
-            }));
-        });
+const sp = (cwd, args) => __awaiter(this, void 0, void 0, function* () {
+    const cmd = yield findYarnCmd();
+    logger.silly('cmd: ', cmd);
+    return new Promise((resolve, reject) => {
+        const stdio = [
+            process.stdin,
+            process.stdout,
+            process.stderr
+        ];
+        spawn(cmd, args, { cwd, stdio })
+            .on('error', reject)
+            .on('close', (code, err) => __awaiter(this, void 0, void 0, function* () {
+            if (err) {
+                reject(err);
+            }
+            else {
+                resolve();
+            }
+        }));
     });
+});
+function yarnInstall(cwd) {
+    return sp(cwd, ['install']);
 }
 function yarnAdd(cwd, keys) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const yarnCmd = yield findYarnCmd();
-        if (!keys || keys.length === 0) {
-            return Promise.resolve();
-        }
-        else {
-            const args = ['add', ...keys];
-            logger.silly('args: ', args);
-            return new Promise((resolve, reject) => {
-                spawn(yarnCmd, args, { cwd, stdio: 'inherit' })
-                    .on('error', reject)
-                    .on('close', (code, err) => {
-                    if (err) {
-                        reject(err);
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            });
-        }
-    });
+    if (!keys || keys.length === 0) {
+        return Promise.resolve();
+    }
+    else {
+        const args = ['add', ...keys];
+        logger.silly('args: ', args);
+        return sp(cwd, args);
+    }
 }
 function install(cwd, keys) {
     return __awaiter(this, void 0, void 0, function* () {
         const yarnCmd = yield findYarnCmd();
         logger.silly('using yarn cmd: ', yarnCmd);
-        logger.info('cwd: ', cwd);
+        logger.silly('cwd: ', cwd);
         const outstandingKeys = yield removeKeysThatAreInLockFile(keys, cwd);
         logger.silly('outstandingKeys: ', outstandingKeys);
         yield yarnAdd(cwd, outstandingKeys);
         yield yarnInstall(cwd);
-        logger.silly('read lock file...');
         return readYarnLock(cwd);
     });
 }
@@ -82,14 +74,13 @@ function readYarnLock(cwd) {
     return __awaiter(this, void 0, void 0, function* () {
         const yarnLockPath = path_1.join(cwd, 'yarn.lock');
         const exists = yield fs_extra_1.pathExists(yarnLockPath);
-        logger.info(yarnLockPath, 'exists? ', exists);
+        logger.silly(yarnLockPath, 'exists? ', exists);
         if (exists) {
             const file = yield fs_extra_1.readFile(yarnLockPath, 'utf8');
             const parsed = lockfile.parse(file);
             return parsed.object;
         }
         else {
-            logger.warning('!!!! ');
             return Promise.reject(new Error(`no yarn file: ${yarnLockPath}`));
         }
     });
@@ -102,7 +93,7 @@ function removeKeysThatAreInLockFile(keys, cwd) {
             return keys.filter(k => !inYarnLock(yarnLock, k));
         }
         catch (e) {
-            logger.info('got the error return []');
+            logger.silly('[removeKeysThatAreInLockFile] got the error return []');
             return keys;
         }
     });

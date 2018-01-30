@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="0.2.3"></a>
+## [0.2.3](https://github.com/PieLabs/pie-cli-libs/compare/v0.2.2...v0.2.3) (2018-01-30)
+
+
+### Bug Fixes
+
+* **yarn:** no yarn.lock is ok if there are no dependencies ([cbc7e94](https://github.com/PieLabs/pie-cli-libs/commit/cbc7e94))
+
+
+
+
 <a name="0.2.2"></a>
 ## [0.2.2](https://github.com/PieLabs/pie-cli-libs/compare/v0.2.1...v0.2.2) (2018-01-30)
 

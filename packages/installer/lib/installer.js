@@ -24,7 +24,7 @@ class RootInstaller {
     constructor(cwd, reporter) {
         this.cwd = cwd;
         this.reporter = reporter;
-        if (!fs_extra_1.existsSync(cwd)) {
+        if (!fs_extra_1.pathExistsSync(cwd)) {
             throw new Error(`cwd does not exist: ${cwd}`);
         }
         this.installationDir = path_1.join(cwd, '.pie');
@@ -97,6 +97,9 @@ function findInstallationResult(local, path, installationResult) {
         }
     };
     const getModuleId = (s) => {
+        if (!s) {
+            return;
+        }
         if (local) {
             return s.replace(`@${path}`, '');
         }

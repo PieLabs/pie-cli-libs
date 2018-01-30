@@ -14,6 +14,8 @@ const log_factory_1 = require("log-factory");
 const spawn = require("cross-spawn");
 const lockfile = require("@yarnpkg/lockfile");
 const fs_extra_1 = require("fs-extra");
+const installer_1 = require("./installer");
+const lodash_1 = require("lodash");
 const logger = log_factory_1.buildLogger();
 const findYarnCmd = () => {
     return findUp('node_modules', {
@@ -66,7 +68,16 @@ function install(cwd, keys) {
         logger.silly('outstandingKeys: ', outstandingKeys);
         yield yarnAdd(cwd, outstandingKeys);
         yield yarnInstall(cwd);
-        return readYarnLock(cwd);
+        return readYarnLock(cwd)
+            .catch((e) => __awaiter(this, void 0, void 0, function* () {
+            const pkg = yield installer_1.readPackage(cwd);
+            if (!pkg.dependencies || lodash_1.isEmpty(pkg.dependencies)) {
+                return {};
+            }
+            else {
+                throw e;
+            }
+        }));
     });
 }
 exports.install = install;

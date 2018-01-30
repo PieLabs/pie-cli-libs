@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as semver from 'semver';
 import { install } from './yarn';
 
-import { ensureDirSync, existsSync, stat, pathExists, readJson, writeJson } from 'fs-extra';
+import { ensureDirSync, stat, pathExists, readJson, writeJson, pathExistsSync } from 'fs-extra';
 import { join, resolve } from 'path';
 
 import { buildLogger } from 'log-factory';
@@ -67,7 +67,8 @@ export type Model = {
 
 export type Package = {
   name: string,
-  version: string
+  version: string,
+  dependencies?: { [key: string]: string }
 };
 
 export type Models = Model[];
@@ -81,7 +82,7 @@ export default class RootInstaller {
 
   constructor(private cwd: string, private reporter: Reporter) {
 
-    if (!existsSync(cwd)) {
+    if (!pathExistsSync(cwd)) {
       throw new Error(`cwd does not exist: ${cwd}`);
     }
 
@@ -181,6 +182,10 @@ export function findInstallationResult(
   };
 
   const getModuleId = (s: string) => {
+    if (!s) {
+      return;
+    }
+
     if (local) {
       return s.replace(`@${path}`, '');
     } else {

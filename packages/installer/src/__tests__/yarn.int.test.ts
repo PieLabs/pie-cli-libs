@@ -39,7 +39,7 @@ describe('install', () => {
       });
   });
 
-  it.only('installs npm dependency', () => {
+  it('installs npm dependency', () => {
     expect(result[target]).toBeDefined();
   });
 

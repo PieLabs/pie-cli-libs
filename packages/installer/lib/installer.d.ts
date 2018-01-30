@@ -58,6 +58,9 @@ export declare type Model = {
 export declare type Package = {
     name: string;
     version: string;
+    dependencies?: {
+        [key: string]: string;
+    };
 };
 export declare type Models = Model[];
 export default class RootInstaller {

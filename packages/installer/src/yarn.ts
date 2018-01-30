@@ -4,6 +4,8 @@ import { buildLogger } from 'log-factory';
 import * as spawn from 'cross-spawn';
 import * as lockfile from '@yarnpkg/lockfile';
 import { readFile, pathExists } from 'fs-extra';
+import { readPackage } from './installer';
+import { isEmpty } from 'lodash';
 
 const logger = buildLogger();
 
@@ -71,7 +73,20 @@ export async function install(cwd: string, keys: string[]): Promise<{}> {
   await yarnAdd(cwd, outstandingKeys);
   // always run an install...
   await yarnInstall(cwd);
-  return readYarnLock(cwd);
+
+  /**
+   * If a package has no dependencies no yarn.lock is present.
+   * Handle this.
+   */
+  return readYarnLock(cwd)
+    .catch(async e => {
+      const pkg = await readPackage(cwd);
+      if (!pkg.dependencies || isEmpty(pkg.dependencies)) {
+        return {};
+      } else {
+        throw e;
+      }
+    });
 }
 
 export async function readYarnLock(cwd: string): Promise<{}> {

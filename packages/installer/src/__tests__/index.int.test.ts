@@ -30,6 +30,7 @@ const mkLocalPiePackage = async (dir: string, name: string) => {
 };
 
 const reporter = {
+  info: (msg) => logger.silly('>>> ', msg),
   promise: (msg, p) => {
     logger.silly('>>>>>>>>>>>>>>>>>> msg: ', msg);
     return p;
@@ -65,8 +66,8 @@ describe('installer', () => {
         reporter
       );
 
-      expect(result.length).toEqual(1);
-      const [one] = result;
+      expect(result.installed.length).toEqual(1);
+      const [one] = result.installed;
 
       expect(one).toMatchObject({
         input: {
@@ -99,9 +100,9 @@ describe('installer', () => {
       );
 
       logger.info('result: ', result);
-      expect(result.length).toEqual(1);
+      expect(result.installed.length).toEqual(1);
 
-      const [r] = result;
+      const [r] = result.installed;
       logger.info('result >>>>> ', result);
       expect(r).toMatchObject({
         postInstall: {
@@ -123,8 +124,8 @@ describe('installer', () => {
       );
 
       logger.info('result: ', JSON.stringify(result, null, '  '));
-      expect(result.length).toEqual(1);
-      const [r] = result;
+      expect(result.installed.length).toEqual(1);
+      const [r] = result.installed;
       expect(r).toMatchObject({
         pie: {
           hasConfigurePackage: true

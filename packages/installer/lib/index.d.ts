@@ -1,7 +1,11 @@
-import { ElementMap, Model, InstalledElement, PreInstallRequest, PostInstall, PieInfo, Input, PackageType, Dirs } from './installer';
+import { Pkg, Input, PackageType, Dirs, ElementMap, Model } from './types';
 import { Reporter } from './reporter';
-export { Dirs, InstalledElement, PreInstallRequest, PostInstall, Input, PieInfo, Reporter, PackageType };
+export { Dirs, Input, Reporter, PackageType, Pkg };
+export declare type InstallResult = {
+    dirs: Dirs;
+    pkgs: Pkg[];
+};
 export declare function install(dir: string, elements: ElementMap, models: Model[], reporter: Reporter): Promise<{
     dirs: Dirs;
-    installed: InstalledElement[];
+    pkgs: Pkg[];
 }>;

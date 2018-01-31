@@ -4,74 +4,13 @@ import { install } from './yarn';
 
 import { ensureDirSync, stat, pathExists, readJson, writeJson, pathExistsSync } from 'fs-extra';
 import { join, resolve } from 'path';
-
+import { loadPkg } from './utils';
 import { buildLogger } from 'log-factory';
 import { Reporter } from './reporter';
-
-export enum PackageType {
-  FILE = 'file',
-  PACKAGE = 'package'
-}
-
-export type Dirs = {
-  configure: string,
-  controllers: string,
-  root: string
-};
-
-export type Input = {
-  element: string,
-  value: string
-};
-
-export type PreInstallRequest = {
-  element: string,
-  value: string,
-  local: boolean,
-  type: PackageType,
-  hasModel: boolean,
-  package?: { name: string }
-};
-
-export type PostInstall = {
-  dir: string,
-  moduleId: string,
-  version: string,
-  resolved: string,
-  dependencies: { [key: string]: string }
-};
-
-export type PieInfo = {
-  hasConfigurePackage: boolean,
-  controller?: { dir: string, moduleId: string },
-  configure?: { dir: string, moduleId: string }
-};
-
-export interface InstalledElement {
-  element: string;
-  input: Input;
-  preInstall: PreInstallRequest;
-  postInstall?: PostInstall;
-  pie?: PieInfo;
-}
+import { Pkg, PackageType, Package, ElementMap, Model, Input, PreInstallRequest, PostInstall } from './types';
+import { controller, configure } from './pkg-builder';
 
 const logger = buildLogger();
-
-export type ElementMap = {
-  [key: string]: string
-};
-
-export type Model = {
-  element: string
-};
-
-export type Package = {
-  name: string,
-  version: string,
-  dependencies?: { [key: string]: string }
-};
-
-export type Models = Model[];
 
 /**
  * Root installer - installs main packages.
@@ -91,14 +30,14 @@ export default class RootInstaller {
   }
 
   public async install(elements: ElementMap,
-    models: Model[]): Promise<{ dir: string, elements: InstalledElement[] }> {
+    models: Model[]): Promise<{ dir: string, pkgs: Pkg[] }> {
 
     logger.silly('[install]', elements);
 
     const inputs: Input[] = _.map(elements, (value, element) => ({ element, value }));
     const requests: PreInstallRequest[] = await createInstallRequests(this.cwd, inputs, models);
 
-    const mapped = requests.map(r => {
+    const mappedRequests = requests.map(r => {
       if (r.local) {
         return { ...r, value: `../${r.value}` };
       } else {
@@ -106,68 +45,65 @@ export default class RootInstaller {
       }
     });
 
-    const packages = mapped.filter(r => r.type === 'package');
+    const packages = mappedRequests.filter(r => r.type === 'package');
     logger.debug('writing package.json..');
     await this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
     logger.debug('writing package.json..done');
-    const installationResult = await install(this.installationDir, packages.map(r => r.value));
 
-    const out = _.zipWith(inputs, mapped, async (input, preInstall: PreInstallRequest) => {
-      const postInstall = findInstallationResult(
-        preInstall.local,
-        preInstall.value,
-        installationResult);
+    /**
+     * TODO:
+     * - if the pkg is local and depends on other locals for configure/element/controller,
+     * we need to pass that information out so that a watch can be set up pointing from the src dir
+     * to the install dir.
+     * ../pkg -> ../foo =
+     *   { src: ../foo moduleId: foo-name, isInternalPkg: false, isLocalPkg: true}
+     *   //path is relative to the install dir.
+     */
+    const lockData = await install(this.installationDir, packages.map(r => r.value));
 
-      postInstall.dir = this.installationDir;
+    logger.debug('lockData: ', lockData);
 
-      return {
-        element: input.element,
-        input,
-        pie: await addPieInfo(this.installationDir, postInstall),
-        postInstall,
-        preInstall,
-      };
+    const pkgs = _.zipWith(inputs, mappedRequests, async (input, r: PreInstallRequest) => {
+      const result = findInstallationResult(r.local, r.value, lockData);
+      return toPkg(this.installationDir, input, lockData, result, r);
     });
 
-    logger.silly('out', out);
-    return Promise.all(out)
-      .then(e => ({ dir: this.installationDir, elements: e }));
+    return Promise.all(pkgs)
+      .then(p => ({ dir: this.installationDir, pkgs: p }));
   }
 }
 
-/**
- * Add stub pie information - hasController
- * @param dir
- * @param postInstall
- */
-export async function addPieInfo(dir: string, postInstall: PostInstall): Promise<PieInfo | undefined> {
+export async function toPkg(
+  dir: string,
+  input: Input,
+  yarn: any,
+  result: PostInstall,
+  preInstall: PreInstallRequest): Promise<Pkg> {
 
-  if (postInstall) {
-    const installedPath = join(dir, 'node_modules', postInstall.moduleId);
-    const hasController = await pathExists(join(installedPath, 'controller')) &&
-      await pathExists(join(installedPath, 'controller', 'package.json'));
-    if (hasController) {
-      const hasConfigurePackage =
-        await pathExists(join(installedPath, 'configure')) &&
-        await pathExists(join(installedPath, 'configure', 'package.json'));
-      return { hasConfigurePackage };
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
-  }
+  const installPath = join(dir, 'node_modules', result.moduleId);
+
+  const pkg = await loadPkg(installPath);
+
+  const pieDef = (pkg && pkg.pie) || {};
+
+  const out: Pkg = {
+    dir,
+    element: {
+      moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
+      tag: input.element
+    },
+    input,
+    isLocal: preInstall.local,
+    rootModuleId: result.moduleId,
+    type: preInstall.type,
+  };
+
+  out.controller = await controller(pieDef, dir, yarn, input, installPath);
+  out.configure = await configure(pieDef, dir, yarn, input, installPath);
+
+  return out;
 }
 
-/**
- * TODO: need to check if the yarn key ends with the
- * install target eg
- * name@target // -> ends with @target then use the name.
- * instead of trying to split @ cos there could be multiple in the key.
- * @param local T
- * @param path
- * @param installationResult
- */
 export function findInstallationResult(
   local: boolean,
   path: string,
@@ -200,14 +136,14 @@ export function findInstallationResult(
 
 export async function writePackageJson(dir: string, data: {} = {}, opts = {
   force: false
-}): Promise<void> {
+}): Promise<string> {
 
   logger.silly('[writePackageJson]: dir: ', dir);
 
   const pkgPath = join(dir, 'package.json');
 
   if (await pathExists(pkgPath)) {
-    return Promise.resolve();
+    return Promise.resolve(pkgPath);
   } else {
     const info = {
       description: 'auto generated package.json',
@@ -217,7 +153,8 @@ export async function writePackageJson(dir: string, data: {} = {}, opts = {
       version: '0.0.1',
       ...data
     };
-    return writeJson(join(dir, 'package.json'), info);
+    return writeJson(join(dir, 'package.json'), info, { spaces: 2 })
+      .then(() => pkgPath);
   }
 }
 
@@ -250,9 +187,10 @@ export async function createInstallRequests(
     const e = await pathExists(resolvedPath);
     logger.silly('path exists: ', e);
 
+    const hasModel = _.some(models, m => m.element === element);
+
     if (e) {
       const statInfo = await stat(resolvedPath);
-      const hasModel = _.some(models, m => m.element === element);
       return {
         element,
         hasModel,
@@ -264,13 +202,12 @@ export async function createInstallRequests(
       const v = semver.validRange(value) ? `${element}@${value}` : value;
       return {
         element,
-        hasModel: _.some(models, m => m.element === element),
+        hasModel,
         local: false,
         type: PackageType.PACKAGE,
         value: v
       };
     }
   });
-
   return Promise.all(mapped);
 }

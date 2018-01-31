@@ -1,25 +1,11 @@
 import { install } from '../yarn';
-// tslint:disable-next-line:no-implicit-dependencies
-import { mkdir } from 'temp';
+import { mkdirAsync } from './utils';
 import { writePackageJson } from '../installer';
 import { buildLogger, setDefaultLevel } from 'log-factory';
 
 setDefaultLevel('info');
 
 const logger = buildLogger();
-
-const mkdirAsync = (prefix: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-
-    mkdir(prefix, (err, p) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(p);
-      }
-    });
-  });
-};
 
 describe('install', () => {
 

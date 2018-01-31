@@ -13,12 +13,10 @@ const semver = require("semver");
 const yarn_1 = require("./yarn");
 const fs_extra_1 = require("fs-extra");
 const path_1 = require("path");
+const utils_1 = require("./utils");
 const log_factory_1 = require("log-factory");
-var PackageType;
-(function (PackageType) {
-    PackageType["FILE"] = "file";
-    PackageType["PACKAGE"] = "package";
-})(PackageType = exports.PackageType || (exports.PackageType = {}));
+const types_1 = require("./types");
+const pkg_builder_1 = require("./pkg-builder");
 const logger = log_factory_1.buildLogger();
 class RootInstaller {
     constructor(cwd, reporter) {
@@ -35,7 +33,7 @@ class RootInstaller {
             logger.silly('[install]', elements);
             const inputs = _.map(elements, (value, element) => ({ element, value }));
             const requests = yield createInstallRequests(this.cwd, inputs, models);
-            const mapped = requests.map(r => {
+            const mappedRequests = requests.map(r => {
                 if (r.local) {
                     return Object.assign({}, r, { value: `../${r.value}` });
                 }
@@ -43,50 +41,44 @@ class RootInstaller {
                     return r;
                 }
             });
-            const packages = mapped.filter(r => r.type === 'package');
+            const packages = mappedRequests.filter(r => r.type === 'package');
             logger.debug('writing package.json..');
             yield this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
             logger.debug('writing package.json..done');
-            const installationResult = yield yarn_1.install(this.installationDir, packages.map(r => r.value));
-            const out = _.zipWith(inputs, mapped, (input, preInstall) => __awaiter(this, void 0, void 0, function* () {
-                const postInstall = findInstallationResult(preInstall.local, preInstall.value, installationResult);
-                postInstall.dir = this.installationDir;
-                return {
-                    element: input.element,
-                    input,
-                    pie: yield addPieInfo(this.installationDir, postInstall),
-                    postInstall,
-                    preInstall,
-                };
+            const lockData = yield yarn_1.install(this.installationDir, packages.map(r => r.value));
+            logger.debug('lockData: ', lockData);
+            const pkgs = _.zipWith(inputs, mappedRequests, (input, r) => __awaiter(this, void 0, void 0, function* () {
+                const result = findInstallationResult(r.local, r.value, lockData);
+                return toPkg(this.installationDir, input, lockData, result, r);
             }));
-            logger.silly('out', out);
-            return Promise.all(out)
-                .then(e => ({ dir: this.installationDir, elements: e }));
+            return Promise.all(pkgs)
+                .then(p => ({ dir: this.installationDir, pkgs: p }));
         });
     }
 }
 exports.default = RootInstaller;
-function addPieInfo(dir, postInstall) {
+function toPkg(dir, input, yarn, result, preInstall) {
     return __awaiter(this, void 0, void 0, function* () {
-        if (postInstall) {
-            const installedPath = path_1.join(dir, 'node_modules', postInstall.moduleId);
-            const hasController = (yield fs_extra_1.pathExists(path_1.join(installedPath, 'controller'))) &&
-                (yield fs_extra_1.pathExists(path_1.join(installedPath, 'controller', 'package.json')));
-            if (hasController) {
-                const hasConfigurePackage = (yield fs_extra_1.pathExists(path_1.join(installedPath, 'configure'))) &&
-                    (yield fs_extra_1.pathExists(path_1.join(installedPath, 'configure', 'package.json')));
-                return { hasConfigurePackage };
-            }
-            else {
-                return undefined;
-            }
-        }
-        else {
-            return undefined;
-        }
+        const installPath = path_1.join(dir, 'node_modules', result.moduleId);
+        const pkg = yield utils_1.loadPkg(installPath);
+        const pieDef = (pkg && pkg.pie) || {};
+        const out = {
+            dir,
+            element: {
+                moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
+                tag: input.element
+            },
+            input,
+            isLocal: preInstall.local,
+            rootModuleId: result.moduleId,
+            type: preInstall.type,
+        };
+        out.controller = yield pkg_builder_1.controller(pieDef, dir, yarn, input, installPath);
+        out.configure = yield pkg_builder_1.configure(pieDef, dir, yarn, input, installPath);
+        return out;
     });
 }
-exports.addPieInfo = addPieInfo;
+exports.toPkg = toPkg;
 function findInstallationResult(local, path, installationResult) {
     const findKey = (s) => {
         if (local) {
@@ -113,17 +105,18 @@ function findInstallationResult(local, path, installationResult) {
 }
 exports.findInstallationResult = findInstallationResult;
 function writePackageJson(dir, data = {}, opts = {
-        force: false
-    }) {
+    force: false
+}) {
     return __awaiter(this, void 0, void 0, function* () {
         logger.silly('[writePackageJson]: dir: ', dir);
         const pkgPath = path_1.join(dir, 'package.json');
         if (yield fs_extra_1.pathExists(pkgPath)) {
-            return Promise.resolve();
+            return Promise.resolve(pkgPath);
         }
         else {
             const info = Object.assign({ description: 'auto generated package.json', license: 'MIT', name: 'x', private: true, version: '0.0.1' }, data);
-            return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info);
+            return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info, { spaces: 2 })
+                .then(() => pkgPath);
         }
     });
 }
@@ -148,14 +141,14 @@ function createInstallRequests(cwd, elements, models) {
             logger.silly('resolvedPath: ', resolvedPath);
             const e = yield fs_extra_1.pathExists(resolvedPath);
             logger.silly('path exists: ', e);
+            const hasModel = _.some(models, m => m.element === element);
             if (e) {
                 const statInfo = yield fs_extra_1.stat(resolvedPath);
-                const hasModel = _.some(models, m => m.element === element);
                 return {
                     element,
                     hasModel,
                     local: true,
-                    type: statInfo.isFile() ? PackageType.FILE : PackageType.PACKAGE,
+                    type: statInfo.isFile() ? types_1.PackageType.FILE : types_1.PackageType.PACKAGE,
                     value
                 };
             }
@@ -163,9 +156,9 @@ function createInstallRequests(cwd, elements, models) {
                 const v = semver.validRange(value) ? `${element}@${value}` : value;
                 return {
                     element,
-                    hasModel: _.some(models, m => m.element === element),
+                    hasModel,
                     local: false,
-                    type: PackageType.PACKAGE,
+                    type: types_1.PackageType.PACKAGE,
                     value: v
                 };
             }

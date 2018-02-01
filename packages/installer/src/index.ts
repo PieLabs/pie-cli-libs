@@ -32,6 +32,11 @@ export {
 
 const logger = getLogger('@pie-cli-libs/installer');
 
+export type InstallResult = {
+  dirs: Dirs,
+  pkgs: Pkg[]
+};
+
 export async function install(
   dir: string,
   elements: ElementMap,

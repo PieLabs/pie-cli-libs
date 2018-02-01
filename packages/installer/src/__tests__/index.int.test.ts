@@ -4,7 +4,7 @@ import { setDefaultLevel, buildLogger } from 'log-factory';
 import * as temp from 'temp';
 import { ensureDir } from 'fs-extra';
 import { join } from 'path';
-import { writePackageJson } from '../installer';
+import { writePackageJson, Pkg } from '../installer';
 
 setDefaultLevel('silly');
 
@@ -70,10 +70,40 @@ describe('installer', () => {
     });
 
     it('installs remote package w/ set version', () => {
-
       logger.silly(`result ${JSON.stringify(result, null, '  ')}`);
-
       expect(result.pkgs.length).toEqual(1);
+    });
+
+    describe('result.one', () => {
+
+      let one: Pkg;
+
+      beforeEach(() => {
+        one = result.pkgs[0];
+      });
+
+      it('returns element info', () => {
+        expect(one.element).toMatchObject({
+          moduleId: '@pie-test-elements/element-with-internals',
+          tag: 'element-one'
+        });
+      });
+
+      it('returns controller info', () => {
+        expect(one.controller).toMatchObject({
+          isInternalPkg: true,
+          key: 'element-one-controller',
+          moduleId: '@pie-test-elements/element-with-internals-controller',
+        });
+      });
+
+      it('returns configure info', () => {
+        expect(one.configure).toMatchObject({
+          isInternalPkg: true,
+          moduleId: '@pie-test-elements/element-with-internals-configure',
+          tag: 'element-one-configure'
+        });
+      });
     });
     //   const [one] = result.pkgs;
 

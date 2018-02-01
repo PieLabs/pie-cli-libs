@@ -308,14 +308,14 @@ export function findInstallationResult(
 
 export async function writePackageJson(dir: string, data: {} = {}, opts = {
   force: false
-}): Promise<void> {
+}): Promise<string> {
 
   logger.silly('[writePackageJson]: dir: ', dir);
 
   const pkgPath = join(dir, 'package.json');
 
   if (await pathExists(pkgPath)) {
-    return Promise.resolve();
+    return Promise.resolve(pkgPath);
   } else {
     const info = {
       description: 'auto generated package.json',
@@ -325,7 +325,8 @@ export async function writePackageJson(dir: string, data: {} = {}, opts = {
       version: '0.0.1',
       ...data
     };
-    return writeJson(join(dir, 'package.json'), info);
+    return writeJson(join(dir, 'package.json'), info, { spaces: 2 })
+      .then(() => pkgPath);
   }
 }
 

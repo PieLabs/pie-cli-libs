@@ -4,40 +4,13 @@ import { setDefaultLevel, buildLogger } from 'log-factory';
 import * as temp from 'temp';
 import { ensureDir, pathExists } from 'fs-extra';
 import { join } from 'path';
-import { writePackageJson, Pkg } from '../installer';
+import { Pkg } from '../installer';
+import { mkReporter, mkLocalPiePackage } from './utils';
 
 setDefaultLevel('silly');
 
 const logger = buildLogger();
-
-const mkLocalPackage = async (dir: string, name: string, pkg: any = {}) => {
-  const path = join(dir, name);
-  await ensureDir(path);
-
-  const data = {
-    dependencies: {},
-    description: 'just a tester',
-    license: 'MIT',
-    name: `@scope/${name}`,
-    version: '1.0.0',
-    ...pkg
-  };
-  return writePackageJson(path, data);
-};
-
-const mkLocalPiePackage = async (dir: string, name: string) => {
-  await mkLocalPackage(dir, name, { name: `@scope/${name}` });
-  await mkLocalPackage(join(dir, name), 'controller', { name: `@scope/${name}-controller` });
-  await mkLocalPackage(join(dir, name), 'configure', { name: `@scope/${name}-configure` });
-};
-
-const reporter = {
-  info: (msg) => logger.silly('>>> ', msg),
-  promise: (msg, p) => {
-    logger.silly('>>>>>>>>>>>>>>>>>> msg: ', msg);
-    return p;
-  }
-};
+const reporter = mkReporter(logger);
 
 describe('installer', () => {
 
@@ -120,8 +93,43 @@ describe('installer', () => {
             .then(e => expect(e).toBeTruthy());
         });
       });
-
     });
 
+    describe('local package', () => {
+
+      let result: InstallResult;
+
+      beforeAll(async () => {
+        const dir = join(tmpPath, 'local-pkg-test');
+        await ensureDir(dir);
+        await mkLocalPiePackage(tmpPath, 'local-pkg');
+
+        result = await install(
+          dir,
+          { 'element-one': '../local-pkg' },
+          [{ element: 'element-one' }],
+          reporter
+        );
+      });
+
+      it('installs 1 local pie package', async () => {
+        expect(result.pkgs.length).toEqual(1);
+      });
+
+      describe('one', () => {
+        let one: Pkg;
+
+        beforeAll(() => {
+          one = result.pkgs[0];
+        });
+
+        it('has element result', () => {
+          expect(one.element).toMatchObject({
+            moduleId: '@scope/local-pkg',
+            tag: 'element-one'
+          });
+        });
+      });
+    });
   });
 });

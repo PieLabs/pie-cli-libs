@@ -49,6 +49,47 @@ export interface InstalledElement {
     postInstall?: PostInstall;
     pie?: PieInfo;
 }
+export interface CustomElementToModuleId {
+    tag: string;
+    moduleId: string;
+    dir: string;
+}
+export interface KeyToModuleId {
+    key: string;
+    moduleId: string;
+}
+export interface Mapping {
+    element: string;
+    configure?: string;
+    controller?: string;
+}
+export interface Element {
+    tag: string;
+    moduleId: string;
+}
+export interface PieController {
+    key: string;
+    moduleId: string;
+    isInternalPkg: boolean;
+}
+export interface PieConfigure {
+    tag: string;
+    moduleId: string;
+    isInternalPkg: boolean;
+}
+export interface Pkg {
+    input: Input;
+    dir: string;
+    element: Element;
+    controller?: PieController;
+    configure?: PieConfigure;
+}
+export interface NewInstalledElement {
+    input: Input;
+    element: CustomElementToModuleId;
+    controller?: KeyToModuleId;
+    configure?: CustomElementToModuleId;
+}
 export declare type ElementMap = {
     [key: string]: string;
 };
@@ -70,10 +111,15 @@ export default class RootInstaller {
     constructor(cwd: string, reporter: Reporter);
     install(elements: ElementMap, models: Model[]): Promise<{
         dir: string;
-        elements: InstalledElement[];
+        pkgs: Pkg[];
     }>;
 }
+export declare function loadPkg(dir: string): Promise<any | undefined>;
+export declare function toPkg(dir: string, input: Input, result: PostInstall): Promise<Pkg>;
 export declare function addPieInfo(dir: string, postInstall: PostInstall): Promise<PieInfo | undefined>;
+export declare function findElementPkg(dir: string, local: boolean, path: string, installationResult: {
+    [key: string]: PostInstall;
+}): Promise<string>;
 export declare function findInstallationResult(local: boolean, path: string, installationResult: {
     [key: string]: PostInstall;
 }): PostInstall;

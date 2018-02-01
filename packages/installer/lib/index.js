@@ -23,9 +23,7 @@ function install(dir, elements, models, reporter) {
         const installed = yield installer.install(elements, models);
         logger.silly('installed: ', JSON.stringify(installed));
         reporter.info('installing controllers...');
-        yield installControllers(installed.dir, installed.elements);
         reporter.info('installing configure...');
-        yield installConfigure(installed.dir, installed.elements);
         const dirs = {
             configure: path_1.join(installer.installationDir, '.configure'),
             controllers: path_1.join(installer.installationDir, '.controllers'),
@@ -33,7 +31,7 @@ function install(dir, elements, models, reporter) {
         };
         return {
             dirs,
-            installed: installed.elements
+            pkgs: installed.pkgs
         };
     });
 }

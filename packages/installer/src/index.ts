@@ -9,7 +9,8 @@ import RootInstaller, {
   PieInfo,
   Input,
   PackageType,
-  Dirs
+  Dirs,
+  Pkg
 } from './installer';
 
 import { Reporter } from './reporter';
@@ -35,7 +36,7 @@ export async function install(
   dir: string,
   elements: ElementMap,
   models: Model[],
-  reporter: Reporter): Promise<{ dirs: Dirs, installed: InstalledElement[] }> {
+  reporter: Reporter): Promise<{ dirs: Dirs, pkgs: Pkg[] }> {
 
   logger.silly('dir:', dir);
 
@@ -46,10 +47,10 @@ export async function install(
   logger.silly('installed: ', JSON.stringify(installed));
 
   reporter.info('installing controllers...');
-  await installControllers(installed.dir, installed.elements);
+  //await installControllers(installed.dir, installed.pkgs);
 
   reporter.info('installing configure...');
-  await installConfigure(installed.dir, installed.elements);
+  //await installConfigure(installed.dir, installed.pkgs);
 
   const dirs: Dirs = {
     configure: join(installer.installationDir, '.configure'),
@@ -59,7 +60,7 @@ export async function install(
 
   return {
     dirs,
-    installed: installed.elements
+    pkgs: installed.pkgs
   };
 }
 

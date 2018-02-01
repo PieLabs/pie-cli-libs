@@ -55,6 +55,64 @@ export interface InstalledElement {
   pie?: PieInfo;
 }
 
+export interface CustomElementToModuleId {
+  /** valid custom element name */
+  tag: string;
+  /** the require path that containes the element as a default export */
+  moduleId: string;
+
+  /** the dir in which to resolve the `moduleId` */
+  dir: string;
+}
+
+export interface KeyToModuleId {
+  key: string;
+  moduleId: string;
+}
+
+/** a mapping for each part of a pie */
+export interface Mapping {
+  element: string;
+  configure?: string;
+  controller?: string;
+}
+
+export interface Element {
+  tag: string;
+  moduleId: string;
+}
+
+export interface PieController {
+  key: string;
+  moduleId: string;
+  isInternalPkg: boolean;
+}
+
+export interface PieConfigure {
+  tag: string;
+  moduleId: string;
+  isInternalPkg: boolean;
+}
+
+export interface Pkg {
+  input: Input;
+  dir: string;
+  element: Element;
+  controller?: PieController;
+  configure?: PieConfigure;
+}
+
+export interface NewInstalledElement {
+  input: Input;
+
+  /** The main pie element mapping  */
+  element: CustomElementToModuleId;
+  /** The controller mapping  */
+  controller?: KeyToModuleId;
+  /** The configure mapping  */
+  configure?: CustomElementToModuleId;
+}
+
 const logger = buildLogger();
 
 export type ElementMap = {
@@ -91,14 +149,14 @@ export default class RootInstaller {
   }
 
   public async install(elements: ElementMap,
-    models: Model[]): Promise<{ dir: string, elements: InstalledElement[] }> {
+    models: Model[]): Promise<{ dir: string, pkgs: Pkg[] }> {
 
     logger.silly('[install]', elements);
 
     const inputs: Input[] = _.map(elements, (value, element) => ({ element, value }));
     const requests: PreInstallRequest[] = await createInstallRequests(this.cwd, inputs, models);
 
-    const mapped = requests.map(r => {
+    const mappedRequests = requests.map(r => {
       if (r.local) {
         return { ...r, value: `../${r.value}` };
       } else {
@@ -106,33 +164,71 @@ export default class RootInstaller {
       }
     });
 
-    const packages = mapped.filter(r => r.type === 'package');
+    const packages = mappedRequests.filter(r => r.type === 'package');
     logger.debug('writing package.json..');
     await this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
     logger.debug('writing package.json..done');
     const installationResult = await install(this.installationDir, packages.map(r => r.value));
 
-    const out = _.zipWith(inputs, mapped, async (input, preInstall: PreInstallRequest) => {
-      const postInstall = findInstallationResult(
-        preInstall.local,
-        preInstall.value,
-        installationResult);
-
-      postInstall.dir = this.installationDir;
-
-      return {
-        element: input.element,
-        input,
-        pie: await addPieInfo(this.installationDir, postInstall),
-        postInstall,
-        preInstall,
-      };
+    const pkgs = _.zipWith(inputs, mappedRequests, async (input, r: PreInstallRequest) => {
+      const result = findInstallationResult(r.local, r.value, installationResult);
+      return toPkg(this.installationDir, input, result);
     });
 
-    logger.silly('out', out);
-    return Promise.all(out)
-      .then(e => ({ dir: this.installationDir, elements: e }));
+    return Promise.all(pkgs)
+      .then(p => ({ dir: this.installationDir, pkgs: p }));
   }
+}
+
+export async function loadPkg(dir: string): Promise<any | undefined> {
+  const pkgPath = join(dir, 'package.json');
+  if (await pathExists(pkgPath)) {
+    return readJson(join(dir, 'package.json'));
+  } else {
+    return undefined;
+  }
+}
+
+export async function toPkg(dir: string, input: Input, result: PostInstall): Promise<Pkg> {
+
+  const installPath = join(dir, 'node_modules', result.moduleId);
+
+  const pkg = await loadPkg(installPath);
+  const controllerPkg = await loadPkg(join(installPath, 'controller'));
+  const configurePkg = await loadPkg(join(installPath, 'configure'));
+
+  const pieDef = (pkg && pkg.pie) || {};
+
+  const out: Pkg = {
+    dir,
+    element: {
+      moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
+      tag: input.element
+    },
+    input
+  };
+
+  const controllerId = controllerPkg ? controllerPkg.name : (pieDef.controller ? pieDef.controller : undefined);
+
+  if (controllerId) {
+    out.controller = {
+      isInternalPkg: !!controllerPkg,
+      key: `${input.element}-controller`,
+      moduleId: controllerId,
+    };
+  }
+
+  const configureId = configurePkg ? configurePkg.name : (pieDef.configure ? pieDef.configure : undefined);
+
+  if (configureId) {
+    out.configure = {
+      isInternalPkg: !!configurePkg,
+      moduleId: configureId,
+      tag: `${input.element}-configure`
+    };
+  }
+
+  return out;
 }
 
 /**
@@ -168,6 +264,18 @@ export async function addPieInfo(dir: string, postInstall: PostInstall): Promise
  * @param path
  * @param installationResult
  */
+
+export async function findElementPkg(
+  dir: string,
+  local: boolean,
+  path: string,
+  installationResult: { [key: string]: PostInstall }): Promise<string> {
+
+  const result = findInstallationResult(local, path, installationResult);
+
+  return readJson(join(dir, 'node_modules', result.moduleId));
+}
+
 export function findInstallationResult(
   local: boolean,
   path: string,

@@ -9,8 +9,7 @@
     "outDir": "lib/",
     "target": "es6",
     "typeRoots": [
-      "./node_modules/@types",
-      "./local-typings"
+      "./node_modules/@types"
     ],
     "noUnusedLocals": true,
     "declaration": true

@@ -35,7 +35,7 @@ class RootInstaller {
             logger.silly('[install]', elements);
             const inputs = _.map(elements, (value, element) => ({ element, value }));
             const requests = yield createInstallRequests(this.cwd, inputs, models);
-            const mapped = requests.map(r => {
+            const mappedRequests = requests.map(r => {
                 if (r.local) {
                     return Object.assign({}, r, { value: `../${r.value}` });
                 }
@@ -43,29 +43,68 @@ class RootInstaller {
                     return r;
                 }
             });
-            const packages = mapped.filter(r => r.type === 'package');
+            const packages = mappedRequests.filter(r => r.type === 'package');
             logger.debug('writing package.json..');
             yield this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
             logger.debug('writing package.json..done');
             const installationResult = yield yarn_1.install(this.installationDir, packages.map(r => r.value));
-            const out = _.zipWith(inputs, mapped, (input, preInstall) => __awaiter(this, void 0, void 0, function* () {
-                const postInstall = findInstallationResult(preInstall.local, preInstall.value, installationResult);
-                postInstall.dir = this.installationDir;
-                return {
-                    element: input.element,
-                    input,
-                    pie: yield addPieInfo(this.installationDir, postInstall),
-                    postInstall,
-                    preInstall,
-                };
+            const pkgs = _.zipWith(inputs, mappedRequests, (input, r) => __awaiter(this, void 0, void 0, function* () {
+                const result = findInstallationResult(r.local, r.value, installationResult);
+                return toPkg(this.installationDir, input, result);
             }));
-            logger.silly('out', out);
-            return Promise.all(out)
-                .then(e => ({ dir: this.installationDir, elements: e }));
+            return Promise.all(pkgs)
+                .then(p => ({ dir: this.installationDir, pkgs: p }));
         });
     }
 }
 exports.default = RootInstaller;
+function loadPkg(dir) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const pkgPath = path_1.join(dir, 'package.json');
+        if (yield fs_extra_1.pathExists(pkgPath)) {
+            return fs_extra_1.readJson(path_1.join(dir, 'package.json'));
+        }
+        else {
+            return undefined;
+        }
+    });
+}
+exports.loadPkg = loadPkg;
+function toPkg(dir, input, result) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const installPath = path_1.join(dir, 'node_modules', result.moduleId);
+        const pkg = yield loadPkg(installPath);
+        const controllerPkg = yield loadPkg(path_1.join(installPath, 'controller'));
+        const configurePkg = yield loadPkg(path_1.join(installPath, 'configure'));
+        const pieDef = (pkg && pkg.pie) || {};
+        const out = {
+            dir,
+            element: {
+                moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
+                tag: input.element
+            },
+            input
+        };
+        const controllerId = controllerPkg ? controllerPkg.name : (pieDef.controller ? pieDef.controller : undefined);
+        if (controllerId) {
+            out.controller = {
+                isInternalPkg: !!controllerPkg,
+                key: `${input.element}-controller`,
+                moduleId: controllerId,
+            };
+        }
+        const configureId = configurePkg ? configurePkg.name : (pieDef.configure ? pieDef.configure : undefined);
+        if (configureId) {
+            out.configure = {
+                isInternalPkg: !!configurePkg,
+                moduleId: configureId,
+                tag: `${input.element}-configure`
+            };
+        }
+        return out;
+    });
+}
+exports.toPkg = toPkg;
 function addPieInfo(dir, postInstall) {
     return __awaiter(this, void 0, void 0, function* () {
         if (postInstall) {
@@ -87,6 +126,13 @@ function addPieInfo(dir, postInstall) {
     });
 }
 exports.addPieInfo = addPieInfo;
+function findElementPkg(dir, local, path, installationResult) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const result = findInstallationResult(local, path, installationResult);
+        return fs_extra_1.readJson(path_1.join(dir, 'node_modules', result.moduleId));
+    });
+}
+exports.findElementPkg = findElementPkg;
 function findInstallationResult(local, path, installationResult) {
     const findKey = (s) => {
         if (local) {
@@ -113,8 +159,8 @@ function findInstallationResult(local, path, installationResult) {
 }
 exports.findInstallationResult = findInstallationResult;
 function writePackageJson(dir, data = {}, opts = {
-        force: false
-    }) {
+    force: false
+}) {
     return __awaiter(this, void 0, void 0, function* () {
         logger.silly('[writePackageJson]: dir: ', dir);
         const pkgPath = path_1.join(dir, 'package.json');

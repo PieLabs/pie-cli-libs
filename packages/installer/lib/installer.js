@@ -50,7 +50,7 @@ class RootInstaller {
             const installationResult = yield yarn_1.install(this.installationDir, packages.map(r => r.value));
             const pkgs = _.zipWith(inputs, mappedRequests, (input, r) => __awaiter(this, void 0, void 0, function* () {
                 const result = findInstallationResult(r.local, r.value, installationResult);
-                return toPkg(this.installationDir, input, result);
+                return toPkg(this.installationDir, input, result, r);
             }));
             return Promise.all(pkgs)
                 .then(p => ({ dir: this.installationDir, pkgs: p }));
@@ -70,7 +70,7 @@ function loadPkg(dir) {
     });
 }
 exports.loadPkg = loadPkg;
-function toPkg(dir, input, result) {
+function toPkg(dir, input, result, preInstall) {
     return __awaiter(this, void 0, void 0, function* () {
         const installPath = path_1.join(dir, 'node_modules', result.moduleId);
         const pkg = yield loadPkg(installPath);
@@ -83,7 +83,9 @@ function toPkg(dir, input, result) {
                 moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
                 tag: input.element
             },
-            input
+            input,
+            isLocal: preInstall.local,
+            type: preInstall.type,
         };
         const controllerId = controllerPkg ? controllerPkg.name : (pieDef.controller ? pieDef.controller : undefined);
         if (controllerId) {
@@ -105,34 +107,6 @@ function toPkg(dir, input, result) {
     });
 }
 exports.toPkg = toPkg;
-function addPieInfo(dir, postInstall) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (postInstall) {
-            const installedPath = path_1.join(dir, 'node_modules', postInstall.moduleId);
-            const hasController = (yield fs_extra_1.pathExists(path_1.join(installedPath, 'controller'))) &&
-                (yield fs_extra_1.pathExists(path_1.join(installedPath, 'controller', 'package.json')));
-            if (hasController) {
-                const hasConfigurePackage = (yield fs_extra_1.pathExists(path_1.join(installedPath, 'configure'))) &&
-                    (yield fs_extra_1.pathExists(path_1.join(installedPath, 'configure', 'package.json')));
-                return { hasConfigurePackage };
-            }
-            else {
-                return undefined;
-            }
-        }
-        else {
-            return undefined;
-        }
-    });
-}
-exports.addPieInfo = addPieInfo;
-function findElementPkg(dir, local, path, installationResult) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const result = findInstallationResult(local, path, installationResult);
-        return fs_extra_1.readJson(path_1.join(dir, 'node_modules', result.moduleId));
-    });
-}
-exports.findElementPkg = findElementPkg;
 function findInstallationResult(local, path, installationResult) {
     const findKey = (s) => {
         if (local) {
@@ -165,11 +139,12 @@ function writePackageJson(dir, data = {}, opts = {
         logger.silly('[writePackageJson]: dir: ', dir);
         const pkgPath = path_1.join(dir, 'package.json');
         if (yield fs_extra_1.pathExists(pkgPath)) {
-            return Promise.resolve();
+            return Promise.resolve(pkgPath);
         }
         else {
             const info = Object.assign({ description: 'auto generated package.json', license: 'MIT', name: 'x', private: true, version: '0.0.1' }, data);
-            return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info);
+            return fs_extra_1.writeJson(path_1.join(dir, 'package.json'), info, { spaces: 2 })
+                .then(() => pkgPath);
         }
     });
 }

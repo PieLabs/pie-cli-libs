@@ -1,11 +1,8 @@
 import RootInstaller, {
   ElementMap,
   Model,
-  InstalledElement,
   writePackageJson,
-  PreInstallRequest,
   PostInstall,
-  PieInfo,
   Input,
   PackageType,
   Dirs,
@@ -20,13 +17,11 @@ import { install as yarnInstall } from './yarn';
 
 export {
   Dirs,
-  InstalledElement,
-  PreInstallRequest,
   PostInstall,
   Input,
-  PieInfo,
   Reporter,
-  PackageType
+  PackageType,
+  Pkg
 };
 
 const logger = getLogger('@pie-cli-libs/installer');

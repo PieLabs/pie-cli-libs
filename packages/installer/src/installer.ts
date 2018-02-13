@@ -47,14 +47,6 @@ export type PieInfo = {
   configure?: { dir: string, moduleId: string }
 };
 
-export interface InstalledElement {
-  element: string;
-  input: Input;
-  preInstall: PreInstallRequest;
-  postInstall?: PostInstall;
-  pie?: PieInfo;
-}
-
 export interface CustomElementToModuleId {
   /** valid custom element name */
   tag: string;
@@ -97,20 +89,11 @@ export interface PieConfigure {
 export interface Pkg {
   input: Input;
   dir: string;
+  isLocal: boolean;
+  type: PackageType;
   element: Element;
   controller?: PieController;
   configure?: PieConfigure;
-}
-
-export interface NewInstalledElement {
-  input: Input;
-
-  /** The main pie element mapping  */
-  element: CustomElementToModuleId;
-  /** The controller mapping  */
-  controller?: KeyToModuleId;
-  /** The configure mapping  */
-  configure?: CustomElementToModuleId;
 }
 
 const logger = buildLogger();
@@ -128,8 +111,6 @@ export type Package = {
   version: string,
   dependencies?: { [key: string]: string }
 };
-
-export type Models = Model[];
 
 /**
  * Root installer - installs main packages.
@@ -168,11 +149,21 @@ export default class RootInstaller {
     logger.debug('writing package.json..');
     await this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
     logger.debug('writing package.json..done');
-    const installationResult = await install(this.installationDir, packages.map(r => r.value));
+
+    /**
+     * TODO:
+     * - if the pkg is local and depends on other locals for configure/element/controller,
+     * we need to pass that information out so that a watch can be set up pointing from the src dir
+     * to the install dir.
+     * ../pkg -> ../foo =
+     *   { src: ../foo moduleId: foo-name, isInternalPkg: false, isLocalPkg: true}
+     *   //path is relative to the install dir.
+     */
+    const lockData = await install(this.installationDir, packages.map(r => r.value));
 
     const pkgs = _.zipWith(inputs, mappedRequests, async (input, r: PreInstallRequest) => {
-      const result = findInstallationResult(r.local, r.value, installationResult);
-      return toPkg(this.installationDir, input, result);
+      const result = findInstallationResult(r.local, r.value, lockData);
+      return toPkg(this.installationDir, input, result, r);
     });
 
     return Promise.all(pkgs)
@@ -189,7 +180,10 @@ export async function loadPkg(dir: string): Promise<any | undefined> {
   }
 }
 
-export async function toPkg(dir: string, input: Input, result: PostInstall): Promise<Pkg> {
+export async function toPkg(dir: string,
+  input: Input,
+  result: PostInstall,
+  preInstall: PreInstallRequest): Promise<Pkg> {
 
   const installPath = join(dir, 'node_modules', result.moduleId);
 
@@ -205,7 +199,9 @@ export async function toPkg(dir: string, input: Input, result: PostInstall): Pro
       moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
       tag: input.element
     },
-    input
+    input,
+    isLocal: preInstall.local,
+    type: preInstall.type,
   };
 
   const controllerId = controllerPkg ? controllerPkg.name : (pieDef.controller ? pieDef.controller : undefined);
@@ -229,51 +225,6 @@ export async function toPkg(dir: string, input: Input, result: PostInstall): Pro
   }
 
   return out;
-}
-
-/**
- * Add stub pie information - hasController
- * @param dir
- * @param postInstall
- */
-export async function addPieInfo(dir: string, postInstall: PostInstall): Promise<PieInfo | undefined> {
-
-  if (postInstall) {
-    const installedPath = join(dir, 'node_modules', postInstall.moduleId);
-    const hasController = await pathExists(join(installedPath, 'controller')) &&
-      await pathExists(join(installedPath, 'controller', 'package.json'));
-    if (hasController) {
-      const hasConfigurePackage =
-        await pathExists(join(installedPath, 'configure')) &&
-        await pathExists(join(installedPath, 'configure', 'package.json'));
-      return { hasConfigurePackage };
-    } else {
-      return undefined;
-    }
-  } else {
-    return undefined;
-  }
-}
-
-/**
- * TODO: need to check if the yarn key ends with the
- * install target eg
- * name@target // -> ends with @target then use the name.
- * instead of trying to split @ cos there could be multiple in the key.
- * @param local T
- * @param path
- * @param installationResult
- */
-
-export async function findElementPkg(
-  dir: string,
-  local: boolean,
-  path: string,
-  installationResult: { [key: string]: PostInstall }): Promise<string> {
-
-  const result = findInstallationResult(local, path, installationResult);
-
-  return readJson(join(dir, 'node_modules', result.moduleId));
 }
 
 export function findInstallationResult(
@@ -380,6 +331,5 @@ export async function createInstallRequests(
       };
     }
   });
-
   return Promise.all(mapped);
 }

@@ -23,7 +23,9 @@ function install(dir, elements, models, reporter) {
         const installed = yield installer.install(elements, models);
         logger.silly('installed: ', JSON.stringify(installed));
         reporter.info('installing controllers...');
+        yield installControllers(installed.dir, installed.pkgs);
         reporter.info('installing configure...');
+        yield installConfigure(installed.dir, installed.pkgs);
         const dirs = {
             configure: path_1.join(installer.installationDir, '.configure'),
             controllers: path_1.join(installer.installationDir, '.controllers'),
@@ -38,13 +40,13 @@ function install(dir, elements, models, reporter) {
 exports.install = install;
 function installConfigure(dir, result) {
     return __awaiter(this, void 0, void 0, function* () {
-        const pies = result.filter(r => r.pie !== undefined);
+        const pies = result.filter(r => r.configure && r.configure.isInternalPkg);
         return installPieSubPackage(dir, pies, 'configure', path_1.join(dir, '.configure'));
     });
 }
 function installControllers(dir, result) {
     return __awaiter(this, void 0, void 0, function* () {
-        const pies = result.filter(r => r.pie !== undefined);
+        const pies = result.filter(r => r.controller && r.controller.isInternalPkg);
         return installPieSubPackage(dir, pies, 'controller', path_1.join(dir, '.controllers'));
     });
 }
@@ -60,31 +62,15 @@ function installPieSubPackage(rootDir, installed, packageName, installDir) {
             private: true
         });
         const relativeDependencies = installed.map(p => {
-            if (!p.postInstall) {
-                throw new Error('we expect an npm install object for a pie');
-            }
-            const { postInstall } = p;
-            const installPath = path_1.join(rootDir, 'node_modules', postInstall.moduleId, packageName);
+            const { element } = p;
+            const installPath = path_1.join(rootDir, 'node_modules', element.moduleId, packageName);
             const rp = path_1.relative(installDir, installPath);
             logger.silly('installPath: ', installPath, 'intallDir:', installDir, 'relative: ', rp);
-            return { moduleId: postInstall.moduleId, path: rp };
+            return { moduleId: element.moduleId, path: rp };
         });
         const installResult = yield yarn_1.install(installDir, relativeDependencies.map(r => r.path));
         logger.silly('[installPieSubPackage] installResult', installResult);
-        installed.forEach(p => {
-            if (p.pie) {
-                const rd = relativeDependencies.find(d => d.moduleId === p.postInstall.moduleId);
-                logger.silly('relative dependency: ', rd);
-                const ir = installer_1.findInstallationResult(true, rd.path, installResult);
-                logger.silly('install result: ', ir);
-                p.pie[packageName] = {
-                    dir: installDir,
-                    moduleId: ir && ir.moduleId
-                };
-            }
-        });
-        logger.silly('[installPieSubPackage]: ', JSON.stringify(installResult, null, '  '));
-        return installResult;
+        return installDir;
     });
 }
 //# sourceMappingURL=index.js.map

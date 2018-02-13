@@ -27,7 +27,7 @@
     "log-factory": "^1.0.1",
     "npm-check-updates": "^2.14.0",
     "semver": "^5.5.0",
-    "yarn": "^1.3.2"
+    "yarn": "PieLabs/yarn-custom-build"
   },
   "devDependencies": {
     "@types/find-up": "^2.1.1",

@@ -1,6 +1,6 @@
-import { ensureDir, pathExists } from 'fs-extra';
+import { ensureDir } from 'fs-extra';
 import { join } from 'path';
-import { writePackageJson, Pkg } from '../installer';
+import { writePackageJson } from '../installer';
 
 // tslint:disable-next-line:no-implicit-dependencies
 import { mkdir } from 'temp';

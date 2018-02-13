@@ -42,13 +42,6 @@ export declare type PieInfo = {
         moduleId: string;
     };
 };
-export interface InstalledElement {
-    element: string;
-    input: Input;
-    preInstall: PreInstallRequest;
-    postInstall?: PostInstall;
-    pie?: PieInfo;
-}
 export interface CustomElementToModuleId {
     tag: string;
     moduleId: string;
@@ -80,15 +73,11 @@ export interface PieConfigure {
 export interface Pkg {
     input: Input;
     dir: string;
+    isLocal: boolean;
+    type: PackageType;
     element: Element;
     controller?: PieController;
     configure?: PieConfigure;
-}
-export interface NewInstalledElement {
-    input: Input;
-    element: CustomElementToModuleId;
-    controller?: KeyToModuleId;
-    configure?: CustomElementToModuleId;
 }
 export declare type ElementMap = {
     [key: string]: string;
@@ -103,7 +92,6 @@ export declare type Package = {
         [key: string]: string;
     };
 };
-export declare type Models = Model[];
 export default class RootInstaller {
     private cwd;
     private reporter;
@@ -115,16 +103,12 @@ export default class RootInstaller {
     }>;
 }
 export declare function loadPkg(dir: string): Promise<any | undefined>;
-export declare function toPkg(dir: string, input: Input, result: PostInstall): Promise<Pkg>;
-export declare function addPieInfo(dir: string, postInstall: PostInstall): Promise<PieInfo | undefined>;
-export declare function findElementPkg(dir: string, local: boolean, path: string, installationResult: {
-    [key: string]: PostInstall;
-}): Promise<string>;
+export declare function toPkg(dir: string, input: Input, result: PostInstall, preInstall: PreInstallRequest): Promise<Pkg>;
 export declare function findInstallationResult(local: boolean, path: string, installationResult: {
     [key: string]: PostInstall;
 }): PostInstall;
 export declare function writePackageJson(dir: string, data?: {}, opts?: {
     force: boolean;
-}): Promise<void>;
+}): Promise<string>;
 export declare function readPackage(dir: string): Promise<Package>;
 export declare function createInstallRequests(cwd: string, elements: Input[], models: Model[]): Promise<PreInstallRequest[]>;

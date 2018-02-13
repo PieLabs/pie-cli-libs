@@ -28,6 +28,9 @@ describe('installer', () => {
 
   describe('local pkg with redirects', () => {
 
+    /**
+     * Test a pkg that refers to linked packages
+     */
     let testDir;
 
     async function mkLocalPiePackageWithRedirects(dir: string, name: string): Promise<void> {
@@ -73,6 +76,40 @@ describe('installer', () => {
 
     it('has 1 result', () => {
       expect(result.pkgs.length).toEqual(1);
+    });
+
+    describe('result', () => {
+      let one;
+
+      beforeAll(() => {
+        one = result.pkgs[0];
+      });
+
+      it('returns input pkg', () =>
+        expect(one.input).toMatchObject({
+          element: 'element-one',
+          value: '../local-redirect'
+        }));
+
+      it('returns element ', () =>
+        expect(one.element).toMatchObject({
+          moduleId: '@scope/el',
+          tag: 'element-one'
+        }));
+
+      it('returns configure', () =>
+        expect(one.configure).toMatchObject({
+          isInternalPkg: false,
+          moduleId: '@scope/configure',
+          tag: 'element-one-configure',
+        }));
+
+      it('returns controller', () =>
+        expect(one.controller).toMatchObject({
+          isInternalPkg: false,
+          key: 'element-one-controller',
+          moduleId: '@scope/controller',
+        }));
     });
 
   });

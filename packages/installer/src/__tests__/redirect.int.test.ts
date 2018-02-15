@@ -5,7 +5,8 @@ import * as temp from 'temp';
 import { ensureDir, pathExists } from 'fs-extra';
 import { join, resolve } from 'path';
 import { mkLocalPackage, mkReporter } from './utils';
-setDefaultLevel('silly');
+
+setDefaultLevel('info');
 
 const logger = buildLogger();
 

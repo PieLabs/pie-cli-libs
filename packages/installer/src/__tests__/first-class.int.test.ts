@@ -1,7 +1,8 @@
 import { install } from '../index';
 import { setDefaultLevel, buildLogger } from 'log-factory';
 import { mkdirAsync } from './utils';
-setDefaultLevel('silly');
+
+setDefaultLevel('info');
 
 const logger = buildLogger();
 
@@ -11,6 +12,7 @@ const reporter = {
 };
 
 describe('first-class', () => {
+
   let result;
   beforeAll(async () => {
     const dir = await mkdirAsync('first-class');
@@ -45,7 +47,9 @@ describe('first-class', () => {
   it('1st pkg.controller points to package.json', () => {
     const [one] = result.pkgs;
     expect(one.controller).toMatchObject({
-      isInternalPkg: false,
+      dir: undefined,
+      isChild: false,
+      isLocalPkg: false,
       key: 'first-class-controller',
       moduleId: '@pie-test-elements/element-controller'
     });
@@ -54,7 +58,9 @@ describe('first-class', () => {
   it('1st pkg.configure points to package.json', () => {
     const [one] = result.pkgs;
     expect(one.configure).toMatchObject({
-      isInternalPkg: false,
+      dir: undefined,
+      isChild: false,
+      isLocalPkg: false,
       moduleId: '@pie-test-elements/element-configure',
       tag: 'first-class-configure'
     });

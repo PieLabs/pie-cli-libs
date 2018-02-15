@@ -71,6 +71,8 @@ export async function toPkg(
   result: PostInstall,
   preInstall: PreInstallRequest): Promise<Pkg> {
 
+  logger.silly('[toPkg] dir: ', dir);
+
   const installPath = join(dir, 'node_modules', result.moduleId);
 
   const pkg = await loadPkg(installPath);

@@ -14,7 +14,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/jest unit",
-    "integration-test": "./node_modules/.bin/jest int",
+    "integration-test": "echo run directly instead: ./node_modules/.bin/jest --config jest.config.int.js",
     "build": "rm -fr lib && ./node_modules/.bin/tsc --p tsconfig.build.json"
   },
   "dependencies": {
@@ -41,19 +41,5 @@
     "temp": "^0.8.3",
     "tslint": "^5.9.1",
     "typescript": "^2.7.1"
-  },
-  "jest": {
-    "verbose": true,
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "<rootDir>/preprocessor.js"
-    },
-    "testMatch": [
-      "**/__tests__/**/*.ts"
-    ]
   }
 }

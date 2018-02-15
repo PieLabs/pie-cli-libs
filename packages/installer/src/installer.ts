@@ -4,113 +4,13 @@ import { install } from './yarn';
 
 import { ensureDirSync, stat, pathExists, readJson, writeJson, pathExistsSync } from 'fs-extra';
 import { join, resolve } from 'path';
-
+import { loadPkg } from './utils';
 import { buildLogger } from 'log-factory';
 import { Reporter } from './reporter';
-
-export enum PackageType {
-  FILE = 'file',
-  PACKAGE = 'package'
-}
-
-export type Dirs = {
-  configure: string,
-  controllers: string,
-  root: string
-};
-
-export type Input = {
-  element: string,
-  value: string
-};
-
-export type PreInstallRequest = {
-  element: string,
-  value: string,
-  local: boolean,
-  type: PackageType,
-  hasModel: boolean,
-  package?: { name: string }
-};
-
-export type PostInstall = {
-  dir: string,
-  moduleId: string,
-  version: string,
-  resolved: string,
-  dependencies: { [key: string]: string }
-};
-
-export type PieInfo = {
-  hasConfigurePackage: boolean,
-  controller?: { dir: string, moduleId: string },
-  configure?: { dir: string, moduleId: string }
-};
-
-export interface CustomElementToModuleId {
-  /** valid custom element name */
-  tag: string;
-  /** the require path that containes the element as a default export */
-  moduleId: string;
-
-  /** the dir in which to resolve the `moduleId` */
-  dir: string;
-}
-
-export interface KeyToModuleId {
-  key: string;
-  moduleId: string;
-}
-
-/** a mapping for each part of a pie */
-export interface Mapping {
-  element: string;
-  configure?: string;
-  controller?: string;
-}
-
-export interface Element {
-  tag: string;
-  moduleId: string;
-}
-
-export interface PieController {
-  key: string;
-  moduleId: string;
-  isInternalPkg: boolean;
-}
-
-export interface PieConfigure {
-  tag: string;
-  moduleId: string;
-  isInternalPkg: boolean;
-}
-
-export interface Pkg {
-  input: Input;
-  dir: string;
-  isLocal: boolean;
-  type: PackageType;
-  element: Element;
-  controller?: PieController;
-  configure?: PieConfigure;
-}
+import { Pkg, PackageType, Package, ElementMap, Model, Input, PreInstallRequest, PostInstall } from './types';
+import { controller, configure } from './pkg-builder';
 
 const logger = buildLogger();
-
-export type ElementMap = {
-  [key: string]: string
-};
-
-export type Model = {
-  element: string
-};
-
-export type Package = {
-  name: string,
-  version: string,
-  dependencies?: { [key: string]: string }
-};
 
 /**
  * Root installer - installs main packages.
@@ -161,9 +61,11 @@ export default class RootInstaller {
      */
     const lockData = await install(this.installationDir, packages.map(r => r.value));
 
+    logger.debug('lockData: ', lockData);
+
     const pkgs = _.zipWith(inputs, mappedRequests, async (input, r: PreInstallRequest) => {
       const result = findInstallationResult(r.local, r.value, lockData);
-      return toPkg(this.installationDir, input, result, r);
+      return toPkg(this.installationDir, input, lockData, result, r);
     });
 
     return Promise.all(pkgs)
@@ -171,25 +73,16 @@ export default class RootInstaller {
   }
 }
 
-export async function loadPkg(dir: string): Promise<any | undefined> {
-  const pkgPath = join(dir, 'package.json');
-  if (await pathExists(pkgPath)) {
-    return readJson(join(dir, 'package.json'));
-  } else {
-    return undefined;
-  }
-}
-
-export async function toPkg(dir: string,
+export async function toPkg(
+  dir: string,
   input: Input,
+  yarn: any,
   result: PostInstall,
   preInstall: PreInstallRequest): Promise<Pkg> {
 
   const installPath = join(dir, 'node_modules', result.moduleId);
 
   const pkg = await loadPkg(installPath);
-  const controllerPkg = await loadPkg(join(installPath, 'controller'));
-  const configurePkg = await loadPkg(join(installPath, 'configure'));
 
   const pieDef = (pkg && pkg.pie) || {};
 
@@ -204,25 +97,8 @@ export async function toPkg(dir: string,
     type: preInstall.type,
   };
 
-  const controllerId = controllerPkg ? controllerPkg.name : (pieDef.controller ? pieDef.controller : undefined);
-
-  if (controllerId) {
-    out.controller = {
-      isInternalPkg: !!controllerPkg,
-      key: `${input.element}-controller`,
-      moduleId: controllerId,
-    };
-  }
-
-  const configureId = configurePkg ? configurePkg.name : (pieDef.configure ? pieDef.configure : undefined);
-
-  if (configureId) {
-    out.configure = {
-      isInternalPkg: !!configurePkg,
-      moduleId: configureId,
-      tag: `${input.element}-configure`
-    };
-  }
+  out.controller = await controller(pieDef, dir, yarn, input, installPath);
+  out.configure = await configure(pieDef, dir, yarn, input, installPath);
 
   return out;
 }
@@ -310,9 +186,10 @@ export async function createInstallRequests(
     const e = await pathExists(resolvedPath);
     logger.silly('path exists: ', e);
 
+    const hasModel = _.some(models, m => m.element === element);
+
     if (e) {
       const statInfo = await stat(resolvedPath);
-      const hasModel = _.some(models, m => m.element === element);
       return {
         element,
         hasModel,
@@ -324,7 +201,7 @@ export async function createInstallRequests(
       const v = semver.validRange(value) ? `${element}@${value}` : value;
       return {
         element,
-        hasModel: _.some(models, m => m.element === element),
+        hasModel,
         local: false,
         type: PackageType.PACKAGE,
         value: v

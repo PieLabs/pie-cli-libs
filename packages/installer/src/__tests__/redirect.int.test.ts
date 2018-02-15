@@ -2,10 +2,9 @@ import { install, InstallResult } from '..';
 import { setDefaultLevel, buildLogger } from 'log-factory';
 // tslint:disable-next-line:no-implicit-dependencies
 import * as temp from 'temp';
-import { ensureDir } from 'fs-extra';
-import { join } from 'path';
+import { ensureDir, pathExists } from 'fs-extra';
+import { join, resolve } from 'path';
 import { mkLocalPackage, mkReporter } from './utils';
-
 setDefaultLevel('silly');
 
 const logger = buildLogger();
@@ -99,14 +98,20 @@ describe('installer', () => {
 
       it('returns configure', () =>
         expect(one.configure).toMatchObject({
-          isInternalPkg: false,
+          dir: './../../scope-configure',
           moduleId: '@scope/configure',
           tag: 'element-one-configure',
         }));
 
+      it('configure dir exists', async () => {
+        const exists = await pathExists(
+          resolve(result.dirs.root, one.configure.dir)
+        );
+        expect(exists).toBeTruthy();
+      });
+
       it('returns controller', () =>
         expect(one.controller).toMatchObject({
-          isInternalPkg: false,
           key: 'element-one-controller',
           moduleId: '@scope/controller',
         }));

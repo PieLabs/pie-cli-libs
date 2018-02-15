@@ -50,15 +50,6 @@ export default class RootInstaller {
     await this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
     logger.debug('writing package.json..done');
 
-    /**
-     * TODO:
-     * - if the pkg is local and depends on other locals for configure/element/controller,
-     * we need to pass that information out so that a watch can be set up pointing from the src dir
-     * to the install dir.
-     * ../pkg -> ../foo =
-     *   { src: ../foo moduleId: foo-name, isInternalPkg: false, isLocalPkg: true}
-     *   //path is relative to the install dir.
-     */
     const lockData = await install(this.installationDir, packages.map(r => r.value));
 
     logger.debug('lockData: ', lockData);

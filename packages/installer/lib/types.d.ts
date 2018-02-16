@@ -35,25 +35,12 @@ export declare type PostInstall = {
         [key: string]: string;
     };
 };
-export declare type PieInfo = {
-    hasConfigurePackage: boolean;
-    controller?: {
-        dir: string;
-        moduleId: string;
-    };
-    configure?: {
-        dir: string;
-        moduleId: string;
-    };
-};
-export interface CustomElementToModuleId {
-    tag: string;
-    moduleId: string;
-    dir: string;
-}
 export interface Element {
     tag: string;
     moduleId: string;
+    isRootPkg: boolean;
+    isLocalPkg: boolean;
+    dir?: string;
 }
 export interface PieController {
     key: string;
@@ -85,7 +72,7 @@ export declare type ElementMap = {
 export declare type Model = {
     element: string;
 };
-export declare type Package = {
+export declare type PackageJson = {
     name: string;
     version: string;
     dependencies?: {

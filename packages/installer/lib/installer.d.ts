@@ -1,5 +1,5 @@
 import { Reporter } from './reporter';
-import { Pkg, Package, ElementMap, Model, Input, PreInstallRequest, PostInstall } from './types';
+import { Pkg, PackageJson, ElementMap, Model, Input, PreInstallRequest, PostInstall } from './types';
 export default class RootInstaller {
     private cwd;
     private reporter;
@@ -17,5 +17,5 @@ export declare function findInstallationResult(local: boolean, path: string, ins
 export declare function writePackageJson(dir: string, data?: {}, opts?: {
     force: boolean;
 }): Promise<string>;
-export declare function readPackage(dir: string): Promise<Package>;
+export declare function readPackage(dir: string): Promise<PackageJson>;
 export declare function createInstallRequests(cwd: string, elements: Input[], models: Model[]): Promise<PreInstallRequest[]>;

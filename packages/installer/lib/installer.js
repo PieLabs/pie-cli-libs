@@ -59,15 +59,13 @@ class RootInstaller {
 exports.default = RootInstaller;
 function toPkg(dir, input, yarn, result, preInstall) {
     return __awaiter(this, void 0, void 0, function* () {
+        logger.silly('[toPkg] dir: ', dir);
         const installPath = path_1.join(dir, 'node_modules', result.moduleId);
         const pkg = yield utils_1.loadPkg(installPath);
         const pieDef = (pkg && pkg.pie) || {};
         const out = {
             dir,
-            element: {
-                moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
-                tag: input.element
-            },
+            element: yield pkg_builder_1.element(pieDef, dir, yarn, input, installPath, result),
             input,
             isLocal: preInstall.local,
             rootModuleId: result.moduleId,

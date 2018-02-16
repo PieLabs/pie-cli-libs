@@ -1,6 +1,6 @@
-import { Pkg, Input, PackageType, Dirs, ElementMap, Model } from './types';
+import { Element, Pkg, Input, PackageType, Dirs, ElementMap, Model, PieConfigure, PieController } from './types';
 import { Reporter } from './reporter';
-export { Dirs, Input, Reporter, PackageType, Pkg };
+export { Element, Dirs, Input, Reporter, PackageType, Pkg, PieConfigure, PieController };
 export declare type InstallResult = {
     dirs: Dirs;
     pkgs: Pkg[];

@@ -14,7 +14,7 @@ const invariant = require("invariant");
 const fs_extra_1 = require("fs-extra");
 const log_factory_1 = require("log-factory");
 const logger = log_factory_1.buildLogger();
-const findRelativeDir = (dir, yarn, name) => __awaiter(this, void 0, void 0, function* () {
+const findDir = (dir, yarn, name) => __awaiter(this, void 0, void 0, function* () {
     logger.silly('[findRelativeDir] dir: ', dir, 'name: ', name);
     const key = Object.keys(yarn).find(pattern => pattern.startsWith(`${name}@`));
     logger.silly('[findRelativeDir] key: ', key);
@@ -24,7 +24,7 @@ const findRelativeDir = (dir, yarn, name) => __awaiter(this, void 0, void 0, fun
         logger.silly('path: ', path, 'resolved: ', resolved);
         const exists = yield fs_extra_1.pathExists(resolved);
         if (exists) {
-            return path;
+            return resolved;
         }
     }
 });
@@ -47,7 +47,7 @@ function controller(pieDef, rootDir, yarn, input, rootPkgPath) {
             };
         }
         else {
-            const relativeDir = yield findRelativeDir(rootDir, yarn, pieDef.controller);
+            const relativeDir = yield findDir(rootDir, yarn, pieDef.controller);
             return {
                 dir: relativeDir,
                 isChild: false,
@@ -78,7 +78,7 @@ function configure(pieDef, rootDir, yarn, input, rootPkgPath) {
             };
         }
         else {
-            const relativeDir = yield findRelativeDir(rootDir, yarn, pieDef.configure);
+            const relativeDir = yield findDir(rootDir, yarn, pieDef.configure);
             return {
                 dir: relativeDir,
                 isChild: false,
@@ -90,4 +90,18 @@ function configure(pieDef, rootDir, yarn, input, rootPkgPath) {
     });
 }
 exports.configure = configure;
+function element(pieDef, rootDir, yarn, input, rootPkgPath, result) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const dir = yield findDir(rootDir, yarn, pieDef.element);
+        const out = {
+            dir,
+            isLocalPkg: !!dir,
+            isRootPkg: !pieDef.element,
+            moduleId: pieDef.element ? pieDef.element : result.moduleId,
+            tag: input.element,
+        };
+        return out;
+    });
+}
+exports.element = element;
 //# sourceMappingURL=pkg-builder.js.map

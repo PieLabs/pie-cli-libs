@@ -1,6 +1,6 @@
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 
-let verdaccio = null;
+let verdaccio: ChildProcess = null;
 
 export function boot(done) {
 
@@ -14,12 +14,11 @@ export function boot(done) {
   verdaccio.on('close', done);
 }
 
-
 export function kill() {
   if (!verdaccio) {
     return;
   }
-
+  spawn('npm', ['config', 'delete', 'registry']);
   verdaccio.kill();
   verdaccio = null;
 }

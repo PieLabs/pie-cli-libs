@@ -11,7 +11,8 @@ npm run build
 ## test
 ```shell
 npm test # unit tests
-npm run integration-test # integration tests (slower)
+npm run integration-test # this is disabled for now. instead run: 
+./node_modules/.bin/jest --config jest.config.int.js
 ```
 
 ## publish

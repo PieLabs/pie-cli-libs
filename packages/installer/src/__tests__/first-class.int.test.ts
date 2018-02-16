@@ -1,9 +1,8 @@
 import { install } from '../index';
 import { setDefaultLevel, buildLogger } from 'log-factory';
 import { mkdirAsync } from './utils';
-import * as verdaccio from './verdaccio';
 
-setDefaultLevel('silly');
+setDefaultLevel('info');
 
 const logger = buildLogger();
 
@@ -13,17 +12,6 @@ const reporter = {
 };
 
 describe('first-class', () => {
-
-  beforeAll(done => {
-    jest.setTimeout(30000);
-    verdaccio.boot(done);
-    setTimeout(() => done(), 500);
-  });
-
-  afterAll(done => {
-    verdaccio.kill();
-    setTimeout(() => done(), 500);
-  });
 
   let result;
   beforeAll(async () => {
@@ -46,7 +34,6 @@ describe('first-class', () => {
 
   it('result has 1 pkg', () => {
     expect(result.pkgs.length).toEqual(1);
-
   });
 
   it('1st pkg.element points to pie.element from package.json', () => {

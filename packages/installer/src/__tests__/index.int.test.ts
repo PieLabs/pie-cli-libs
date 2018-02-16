@@ -6,10 +6,8 @@ import { ensureDir, pathExists } from 'fs-extra';
 import { join } from 'path';
 import { Pkg } from '../types';
 import { mkReporter, mkLocalPiePackage } from './utils';
-import { spawn } from 'child_process';
-import * as verdaccio from './verdaccio';
 
-setDefaultLevel('silly');
+setDefaultLevel('info');
 
 const logger = buildLogger();
 const reporter = mkReporter(logger);
@@ -29,18 +27,6 @@ describe('installer', () => {
   });
 
   describe('install', () => {
-    /**
-     * This test assumes that you have `verdaccio` and that you've published @pie-test-elements to it.
-     */
-    beforeAll(done => {
-      verdaccio.boot(done);
-      setTimeout(() => done(), 1000);
-    });
-
-    afterAll(done => {
-      verdaccio.kill();
-      setTimeout(() => done(), 1000);
-    });
 
     describe('remote package', () => {
       let result: InstallResult;

@@ -9,11 +9,11 @@ const logger = buildLogger();
 
 const findDir = async (dir: string, yarn: any, name: string): Promise<string | undefined> => {
 
-  logger.silly('[findRelativeDir] dir: ', dir, 'name: ', name);
+  logger.silly('[findDir] dir: ', dir, 'name: ', name);
 
   const key = Object.keys(yarn).find(pattern => pattern.startsWith(`${name}@`));
 
-  logger.silly('[findRelativeDir] key: ', key);
+  logger.silly('[findDir] key: ', key);
   if (key) {
     const path = key.replace(`${name}@`, '').replace('file:', '');
     const resolved = resolve(dir, path);
@@ -86,7 +86,7 @@ export async function configure(
   const tag = `${input.element}-configure`;
 
   if (configurePkg) {
-    invariant(configurePkg.name, 'The controller package must have a name defined');
+    invariant(configurePkg.name, 'The configure package must have a name defined');
     // Note: ignore what's in pieDef
     return {
       dir: undefined,
@@ -120,13 +120,11 @@ export async function element(
 
   const dir = await findDir(rootDir, yarn, pieDef.element);
 
-  const out: Element = {
+  return {
     dir,
     isLocalPkg: !!dir,
     isRootPkg: !pieDef.element,
     moduleId: pieDef.element ? pieDef.element : result.moduleId,
     tag: input.element,
   };
-
-  return out;
 }

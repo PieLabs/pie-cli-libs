@@ -3,12 +3,15 @@ import RootInstaller, {
 } from './installer';
 
 import {
+  Element,
   Pkg,
   Input,
   PackageType,
   Dirs,
   ElementMap,
-  Model
+  Model,
+  PieConfigure,
+  PieController
 } from './types';
 
 import { Reporter } from './reporter';
@@ -18,11 +21,14 @@ import { ensureDir } from 'fs-extra';
 import { install as yarnInstall } from './yarn';
 
 export {
+  Element,
   Dirs,
   Input,
   Reporter,
   PackageType,
-  Pkg
+  Pkg,
+  PieConfigure,
+  PieController
 };
 
 const logger = getLogger('pie-cli-libs/installer');

@@ -37,25 +37,12 @@ export type PostInstall = {
   dependencies: { [key: string]: string }
 };
 
-export type PieInfo = {
-  hasConfigurePackage: boolean,
-  controller?: { dir: string, moduleId: string },
-  configure?: { dir: string, moduleId: string }
-};
-
-export interface CustomElementToModuleId {
-  /** valid custom element name */
-  tag: string;
-  /** the require path that containes the element as a default export */
-  moduleId: string;
-
-  /** the dir in which to resolve the `moduleId` */
-  dir: string;
-}
-
 export interface Element {
   tag: string;
   moduleId: string;
+  isRootPkg: boolean;
+  isLocalPkg: boolean;
+  dir?: string;
 }
 
 export interface PieController {
@@ -99,7 +86,7 @@ export type Model = {
   element: string
 };
 
-export type Package = {
+export type PackageJson = {
   name: string,
   version: string,
   dependencies?: { [key: string]: string }

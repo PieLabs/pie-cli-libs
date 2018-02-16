@@ -7,8 +7,8 @@ import { join, resolve } from 'path';
 import { loadPkg } from './utils';
 import { buildLogger } from 'log-factory';
 import { Reporter } from './reporter';
-import { Pkg, PackageType, Package, ElementMap, Model, Input, PreInstallRequest, PostInstall } from './types';
-import { controller, configure } from './pkg-builder';
+import { Pkg, PackageType, PackageJson, ElementMap, Model, Input, PreInstallRequest, PostInstall } from './types';
+import { controller, configure, element } from './pkg-builder';
 
 const logger = buildLogger();
 
@@ -81,10 +81,7 @@ export async function toPkg(
 
   const out: Pkg = {
     dir,
-    element: {
-      moduleId: (pieDef.element) ? pieDef.element : result.moduleId,
-      tag: input.element
-    },
+    element: await element(pieDef, dir, yarn, input, installPath, result),
     input,
     isLocal: preInstall.local,
     rootModuleId: result.moduleId,
@@ -151,7 +148,7 @@ export async function writePackageJson(dir: string, data: {} = {}, opts = {
   }
 }
 
-export async function readPackage(dir: string): Promise<Package> {
+export async function readPackage(dir: string): Promise<PackageJson> {
   const pkgPath = join(dir, 'package.json');
   if (pathExists(pkgPath)) {
     const raw = await readJson(pkgPath);

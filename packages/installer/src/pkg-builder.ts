@@ -1,4 +1,4 @@
-import { PieController, Input, PieConfigure, PiePackageConfig } from './types';
+import { PieController, Input, PieConfigure, PiePackageConfig, PostInstall, Element } from './types';
 import { loadPkg } from './utils';
 import { join, resolve } from 'path';
 import * as invariant from 'invariant';
@@ -7,7 +7,7 @@ import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 
-const findRelativeDir = async (dir: string, yarn: any, name: string): Promise<string | undefined> => {
+const findDir = async (dir: string, yarn: any, name: string): Promise<string | undefined> => {
 
   logger.silly('[findRelativeDir] dir: ', dir, 'name: ', name);
 
@@ -16,12 +16,11 @@ const findRelativeDir = async (dir: string, yarn: any, name: string): Promise<st
   logger.silly('[findRelativeDir] key: ', key);
   if (key) {
     const path = key.replace(`${name}@`, '').replace('file:', '');
-    // const fullPath = join(dir, path);
     const resolved = resolve(dir, path);
     logger.silly('path: ', path, 'resolved: ', resolved);
     const exists = await pathExists(resolved);
     if (exists) {
-      return path;
+      return resolved;
     }
   }
 };
@@ -56,7 +55,7 @@ export async function controller(
     };
   } else {
 
-    const relativeDir = await findRelativeDir(rootDir, yarn, pieDef.controller);
+    const relativeDir = await findDir(rootDir, yarn, pieDef.controller);
 
     return {
       dir: relativeDir,
@@ -98,7 +97,7 @@ export async function configure(
     };
   } else {
 
-    const relativeDir = await findRelativeDir(rootDir, yarn, pieDef.configure);
+    const relativeDir = await findDir(rootDir, yarn, pieDef.configure);
 
     return {
       dir: relativeDir,
@@ -108,4 +107,26 @@ export async function configure(
       tag
     };
   }
+}
+
+export async function element(
+  pieDef: PiePackageConfig,
+  rootDir: string,
+  yarn: any,
+  input: Input,
+  rootPkgPath: string,
+  result: PostInstall
+): Promise<Element> {
+
+  const dir = await findDir(rootDir, yarn, pieDef.element);
+
+  const out: Element = {
+    dir,
+    isLocalPkg: !!dir,
+    isRootPkg: !pieDef.element,
+    moduleId: pieDef.element ? pieDef.element : result.moduleId,
+    tag: input.element,
+  };
+
+  return out;
 }

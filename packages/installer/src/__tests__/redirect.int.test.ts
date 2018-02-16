@@ -6,7 +6,7 @@ import { ensureDir, pathExists } from 'fs-extra';
 import { join, resolve } from 'path';
 import { mkLocalPackage, mkReporter } from './utils';
 
-setDefaultLevel('info');
+setDefaultLevel('silly');
 
 const logger = buildLogger();
 
@@ -74,7 +74,7 @@ describe('installer', () => {
       return result;
     });
 
-    it('has 1 result', () => {
+    it.only('has 1 result', () => {
       expect(result.pkgs.length).toEqual(1);
     });
 

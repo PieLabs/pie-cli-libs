@@ -15,9 +15,9 @@ const fs_extra_1 = require("fs-extra");
 const log_factory_1 = require("log-factory");
 const logger = log_factory_1.buildLogger();
 const findDir = (dir, yarn, name) => __awaiter(this, void 0, void 0, function* () {
-    logger.silly('[findRelativeDir] dir: ', dir, 'name: ', name);
+    logger.silly('[findDir] dir: ', dir, 'name: ', name);
     const key = Object.keys(yarn).find(pattern => pattern.startsWith(`${name}@`));
-    logger.silly('[findRelativeDir] key: ', key);
+    logger.silly('[findDir] key: ', key);
     if (key) {
         const path = key.replace(`${name}@`, '').replace('file:', '');
         const resolved = path_1.resolve(dir, path);
@@ -68,7 +68,7 @@ function configure(pieDef, rootDir, yarn, input, rootPkgPath) {
         logger.silly('configurePkg: ', configurePkg);
         const tag = `${input.element}-configure`;
         if (configurePkg) {
-            invariant(configurePkg.name, 'The controller package must have a name defined');
+            invariant(configurePkg.name, 'The configure package must have a name defined');
             return {
                 dir: undefined,
                 isChild: true,
@@ -93,14 +93,13 @@ exports.configure = configure;
 function element(pieDef, rootDir, yarn, input, rootPkgPath, result) {
     return __awaiter(this, void 0, void 0, function* () {
         const dir = yield findDir(rootDir, yarn, pieDef.element);
-        const out = {
+        return {
             dir,
             isLocalPkg: !!dir,
             isRootPkg: !pieDef.element,
             moduleId: pieDef.element ? pieDef.element : result.moduleId,
             tag: input.element,
         };
-        return out;
     });
 }
 exports.element = element;

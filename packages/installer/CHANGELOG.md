@@ -3,6 +3,33 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="1.0.1"></a>
+## [1.0.1](https://github.com/PieLabs/pie-cli-libs/compare/v1.0.0...v1.0.1) (2018-02-16)
+
+
+### Bug Fixes
+
+* **test:** fix up the tests - add verdaccio to global setup/teardown ([c79eb27](https://github.com/PieLabs/pie-cli-libs/commit/c79eb27))
+
+
+
+
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/PieLabs/pie-cli-libs/compare/v0.2.3...v1.0.0) (2018-02-15)
+
+
+### Features
+
+* **packages:** Support 1st class packages in a pie definition. ([1324eb4](https://github.com/PieLabs/pie-cli-libs/commit/1324eb4))
+
+
+### BREAKING CHANGES
+
+* **packages:** `install` now returns `{pkgs: Pkg[], dir: string}`, this new type has all the information a client will need about the installed pkgs.
+
+
+
+
 <a name="0.2.3"></a>
 ## [0.2.3](https://github.com/PieLabs/pie-cli-libs/compare/v0.2.2...v0.2.3) (2018-01-30)
 

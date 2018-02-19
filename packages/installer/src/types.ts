@@ -41,7 +41,9 @@ export interface Element {
   tag: string;
   moduleId: string;
   isRootPkg: boolean;
+  /** is the pkg local (and not the root pkg)? */
   isLocalPkg: boolean;
+  /** resolved path to pkg - if local */
   dir?: string;
 }
 
@@ -52,7 +54,7 @@ export interface PieController {
   isChild: boolean;
   /** is the pkg local (and not a child)? */
   isLocalPkg: boolean;
-  /** local path to pkg - if local */
+  /** resolved path to pkg - if local */
   dir?: string;
 }
 
@@ -63,7 +65,7 @@ export interface PieConfigure {
   isChild: boolean;
   /** is the pkg local (and not a child)? */
   isLocalPkg: boolean;
-  /** local path to pkg - if local */
+  /** resolved path to pkg - if local */
   dir: string;
 }
 

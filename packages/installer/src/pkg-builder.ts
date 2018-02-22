@@ -7,6 +7,8 @@ import { buildLogger } from 'log-factory';
 
 const logger = buildLogger();
 
+export const PASSTHROUGH = 'pie-controller/lib/passthrough';
+
 const findDir = async (dir: string, yarn: any, name: string): Promise<string | undefined> => {
 
   logger.silly('[findDir] dir: ', dir, 'name: ', name);
@@ -31,17 +33,24 @@ export async function controller(
   rootDir: string,
   yarn: any,
   input: Input,
-  rootPkgPath: string): Promise<PieController | undefined> {
+  rootPkgPath: string,
+  passthrough: string = PASSTHROUGH): Promise<PieController | undefined> {
 
+  const key = `${input.element}-controller`;
   const controllerPkg = await loadPkg(join(rootPkgPath, 'controller'));
 
   if (!controllerPkg && !pieDef.controller) {
-    return undefined;
+
+    return {
+      dir: undefined,
+      isChild: false,
+      isLocalPkg: false,
+      key,
+      moduleId: passthrough
+    };
   }
 
   logger.silly('controllerPkg: ', controllerPkg);
-
-  const key = `${input.element}-controller`;
 
   if (controllerPkg) {
     invariant(controllerPkg.name, 'The controller package must have a name defined');

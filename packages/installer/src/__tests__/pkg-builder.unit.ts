@@ -1,4 +1,5 @@
 import { ok } from 'assert';
+import { resolve, join } from 'path';
 
 describe('pkg-builder', () => {
   let yarn;
@@ -45,7 +46,7 @@ describe('pkg-builder', () => {
         configure: 'configure'
       }, 'dir', yarn, input, rootPkgPath);
       expect(result).toMatchObject({
-        dir: '../../path/to/configure',
+        dir: resolve('../path/to/configure'),
         isChild: false,
         isLocalPkg: true,
         moduleId: 'configure',
@@ -86,7 +87,7 @@ describe('pkg-builder', () => {
       }, 'dir', yarn, input, rootPkgPath);
 
       return expect(result).toMatchObject({
-        dir: '../../path/to/controller',
+        dir: resolve('../path/to/controller'),
         isChild: false,
         isLocalPkg: true,
         key: 'el-one-controller',
@@ -130,6 +131,16 @@ describe('pkg-builder', () => {
         .catch(e => {
           ok(true);
         });
+    });
+
+    describe('passthrough', () => {
+
+      it('returns passthrough controller', async () => {
+        const { mod } = init();
+        const result = await mod.controller({}, 'dir', yarn, input, rootPkgPath);
+        expect(result.moduleId).toEqual(mod.PASSTHROUGH);
+      });
+
     });
   });
 });

@@ -14,6 +14,7 @@ const invariant = require("invariant");
 const fs_extra_1 = require("fs-extra");
 const log_factory_1 = require("log-factory");
 const logger = log_factory_1.buildLogger();
+exports.PASSTHROUGH = 'pie-controller/lib/passthrough';
 const findDir = (dir, yarn, name) => __awaiter(this, void 0, void 0, function* () {
     logger.silly('[findDir] dir: ', dir, 'name: ', name);
     const key = Object.keys(yarn).find(pattern => pattern.startsWith(`${name}@`));
@@ -28,14 +29,20 @@ const findDir = (dir, yarn, name) => __awaiter(this, void 0, void 0, function* (
         }
     }
 });
-function controller(pieDef, rootDir, yarn, input, rootPkgPath) {
+function controller(pieDef, rootDir, yarn, input, rootPkgPath, passthrough = exports.PASSTHROUGH) {
     return __awaiter(this, void 0, void 0, function* () {
+        const key = `${input.element}-controller`;
         const controllerPkg = yield utils_1.loadPkg(path_1.join(rootPkgPath, 'controller'));
         if (!controllerPkg && !pieDef.controller) {
-            return undefined;
+            return {
+                dir: undefined,
+                isChild: false,
+                isLocalPkg: false,
+                key,
+                moduleId: passthrough
+            };
         }
         logger.silly('controllerPkg: ', controllerPkg);
-        const key = `${input.element}-controller`;
         if (controllerPkg) {
             invariant(controllerPkg.name, 'The controller package must have a name defined');
             return {

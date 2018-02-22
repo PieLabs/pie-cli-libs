@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="1.1.1"></a>
+## [1.1.1](https://github.com/PieLabs/pie-cli-libs/compare/v1.1.0...v1.1.1) (2018-02-22)
+
+
+### Bug Fixes
+
+* **build:** build js ([1fd557c](https://github.com/PieLabs/pie-cli-libs/commit/1fd557c))
+
+
+
+
 <a name="1.1.0"></a>
 # [1.1.0](https://github.com/PieLabs/pie-cli-libs/compare/v1.0.1...v1.1.0) (2018-02-22)
 

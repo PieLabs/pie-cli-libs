@@ -12,14 +12,15 @@ const logger = buildLogger();
 const findYarnCmd = () => {
 
   const isWindows = process.platform === 'win32';
-  logger.info('[findYarnCmd] isWindows: ', isWindows);
+  logger.silly('[findYarnCmd] isWindows: ', isWindows);
 
   const cmd = isWindows ? 'yarn.cmd' : 'yarn';
 
-  return findUp(`.bin/${cmd}`, {
+  return findUp(join('node_modules', '.bin', cmd), {
     cwd: __dirname
   })
     .then(p => {
+      logger.silly('[findYarnCmd] p: ', p);
       return p;
     });
 };

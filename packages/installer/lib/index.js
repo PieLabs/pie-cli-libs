@@ -62,15 +62,19 @@ function installPieSubPackage(rootDir, installed, packageName, installDir) {
             name: `${packageName}-generated-pkg`,
             private: true
         });
-        const relativeDependencies = installed.map(p => {
-            logger.silly('[installPieSubPackage] p: ', p);
-            const installPath = path_1.join(rootDir, 'node_modules', p.rootModuleId, packageName);
-            const rp = path_1.relative(installDir, installPath);
-            logger.silly('installPath: ', installPath, 'intallDir:', installDir, 'relative: ', rp);
-            return { moduleId: p.rootModuleId, path: rp };
-        });
-        yield yarn_1.install(installDir, relativeDependencies.map(r => r.path));
+        const relativeDependencies = exports.toDependencies(rootDir, packageName, installDir, installed);
+        yield yarn_1.install(installDir, relativeDependencies);
         return installDir;
     });
 }
+exports.toDependencies = (rootDir, packageName, installDir, installed) => {
+    const relativeDependencies = installed.map(p => {
+        logger.silly('[installPieSubPackage] p: ', p);
+        const installPath = path_1.join(rootDir, 'node_modules', p.rootModuleId, packageName);
+        const rp = path_1.relative(installDir, installPath);
+        logger.silly('installPath: ', installPath, 'intallDir:', installDir, 'relative: ', rp);
+        return { moduleId: p.rootModuleId, path: rp };
+    });
+    return relativeDependencies.map(r => `file:${r.path}`);
+};
 //# sourceMappingURL=index.js.map

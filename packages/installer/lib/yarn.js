@@ -18,11 +18,15 @@ const installer_1 = require("./installer");
 const lodash_1 = require("lodash");
 const logger = log_factory_1.buildLogger();
 const findYarnCmd = () => {
-    return findUp('node_modules', {
+    const isWindows = process.platform === 'win32';
+    logger.silly('[findYarnCmd] isWindows: ', isWindows);
+    const cmd = isWindows ? 'yarn.cmd' : 'yarn';
+    return findUp(path_1.join('node_modules', '.bin', cmd), {
         cwd: __dirname
     })
-        .then(np => {
-        return path_1.join(np, '.bin', 'yarn');
+        .then(p => {
+        logger.silly('[findYarnCmd] p: ', p);
+        return p;
     });
 };
 const sp = (cwd, args) => __awaiter(this, void 0, void 0, function* () {
@@ -75,6 +79,7 @@ function install(cwd, keys) {
                 return {};
             }
             else {
+                logger.error('e:', e.message);
                 throw e;
             }
         }));
@@ -88,7 +93,12 @@ function readYarnLock(cwd) {
         logger.silly(yarnLockPath, 'exists? ', exists);
         if (exists) {
             const file = yield fs_extra_1.readFile(yarnLockPath, 'utf8');
-            const parsed = lockfile.parse(file);
+            const cleaned = file.replace(/\r/g, '');
+            logger.info('[readYarnLock] file: ', file.substring(0, 300));
+            logger.info('[readYarnLock] begin parse...');
+            const parsed = lockfile.parse(cleaned);
+            logger.info('[readYarnLock] parsed: ', parsed);
+            logger.info('[readYarnLock] parsed.object: ', parsed.object);
             return parsed.object;
         }
         else {

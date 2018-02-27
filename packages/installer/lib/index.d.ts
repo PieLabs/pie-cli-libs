@@ -9,3 +9,4 @@ export declare function install(dir: string, elements: ElementMap, models: Model
     dirs: Dirs;
     pkgs: Pkg[];
 }>;
+export declare const toDependencies: (rootDir: string, packageName: string, installDir: string, installed: Pkg[]) => string[];

@@ -17,6 +17,7 @@ const utils_1 = require("./utils");
 const log_factory_1 = require("log-factory");
 const types_1 = require("./types");
 const pkg_builder_1 = require("./pkg-builder");
+const invariant = require("invariant");
 const logger = log_factory_1.buildLogger();
 class RootInstaller {
     constructor(cwd, reporter) {
@@ -46,7 +47,6 @@ class RootInstaller {
             yield this.reporter.promise('writing package.json', writePackageJson(this.installationDir));
             logger.debug('writing package.json..done');
             const lockData = yield yarn_1.install(this.installationDir, packages.map(r => r.value));
-            logger.debug('lockData: ', lockData);
             const pkgs = _.zipWith(inputs, mappedRequests, (input, r) => __awaiter(this, void 0, void 0, function* () {
                 const result = findInstallationResult(r.local, r.value, lockData);
                 return toPkg(this.installationDir, input, lockData, result, r);
@@ -60,6 +60,9 @@ exports.default = RootInstaller;
 function toPkg(dir, input, yarn, result, preInstall) {
     return __awaiter(this, void 0, void 0, function* () {
         logger.silly('[toPkg] dir: ', dir);
+        logger.silly('[toPkg] result: ', result);
+        invariant(typeof result.moduleId === 'string', `result.moduleId must be a string got: ${result.moduleId}`);
+        invariant(typeof dir === 'string', `dir must be a string got: ${dir}`);
         const installPath = path_1.join(dir, 'node_modules', result.moduleId);
         const pkg = yield utils_1.loadPkg(installPath);
         const pieDef = (pkg && pkg.pie) || {};
@@ -78,6 +81,8 @@ function toPkg(dir, input, yarn, result, preInstall) {
 }
 exports.toPkg = toPkg;
 function findInstallationResult(local, path, installationResult) {
+    logger.debug('[findInstallationResult] path: ', path, 'local: ', local);
+    logger.silly('[findInstallationResult] installationResult: ', installationResult);
     const findKey = (s) => {
         if (local) {
             return s.endsWith(`@${path}`);

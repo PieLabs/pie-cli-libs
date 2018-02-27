@@ -91,6 +91,7 @@ export async function install(cwd: string, keys: string[]): Promise<{}> {
       if (!pkg.dependencies || isEmpty(pkg.dependencies)) {
         return {};
       } else {
+        logger.error('e:', e.message);
         throw e;
       }
     });
@@ -105,7 +106,16 @@ export async function readYarnLock(cwd: string): Promise<{}> {
 
   if (exists) {
     const file = await readFile(yarnLockPath, 'utf8');
-    const parsed = lockfile.parse(file);
+
+    /**
+     * Windows line endings are triggering a parse failure. See: https://github.com/yarnpkg/yarn/issues/5214
+     */
+    const cleaned = file.replace(/\r/g, '');
+    logger.info('[readYarnLock] file: ', file.substring(0, 300));
+    logger.info('[readYarnLock] begin parse...');
+    const parsed = lockfile.parse(cleaned);
+    logger.info('[readYarnLock] parsed: ', parsed);
+    logger.info('[readYarnLock] parsed.object: ', parsed.object);
     return parsed.object;
   } else {
     return Promise.reject(new Error(`no yarn file: ${yarnLockPath}`));

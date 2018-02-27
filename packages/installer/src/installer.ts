@@ -9,6 +9,7 @@ import { buildLogger } from 'log-factory';
 import { Reporter } from './reporter';
 import { Pkg, PackageType, PackageJson, ElementMap, Model, Input, PreInstallRequest, PostInstall } from './types';
 import { controller, configure, element } from './pkg-builder';
+import * as invariant from 'invariant';
 
 const logger = buildLogger();
 
@@ -52,8 +53,6 @@ export default class RootInstaller {
 
     const lockData = await install(this.installationDir, packages.map(r => r.value));
 
-    logger.debug('lockData: ', lockData);
-
     const pkgs = _.zipWith(inputs, mappedRequests, async (input, r: PreInstallRequest) => {
       const result = findInstallationResult(r.local, r.value, lockData);
       return toPkg(this.installationDir, input, lockData, result, r);
@@ -72,6 +71,10 @@ export async function toPkg(
   preInstall: PreInstallRequest): Promise<Pkg> {
 
   logger.silly('[toPkg] dir: ', dir);
+  logger.silly('[toPkg] result: ', result);
+
+  invariant(typeof result.moduleId === 'string', `result.moduleId must be a string got: ${result.moduleId}`);
+  invariant(typeof dir === 'string', `dir must be a string got: ${dir}`);
 
   const installPath = join(dir, 'node_modules', result.moduleId);
 
@@ -98,6 +101,10 @@ export function findInstallationResult(
   local: boolean,
   path: string,
   installationResult: { [key: string]: PostInstall }): PostInstall {
+
+
+  logger.debug('[findInstallationResult] path: ', path, 'local: ', local);
+  logger.silly('[findInstallationResult] installationResult: ', installationResult);
 
   const findKey = (s: string) => {
     if (local) {

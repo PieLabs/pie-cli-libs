@@ -1,9 +1,12 @@
-import { removeKeysThatAreInPackage, inDependencies, inYarnLock } from "../yarn";
-import { setDefaultLevel } from "log-factory";
+import { removeKeysThatAreInPackage, inDependencies, inYarnLock, readYarnLock } from '../yarn';
+import { setDefaultLevel } from 'log-factory';
+import { readFile } from 'fs-extra';
+import { parse } from '@yarnpkg/lockfile';
 
 beforeAll(() => {
   setDefaultLevel('silly');
 });
+
 describe('inDependencies', () => {
 
   // tslint:disable-next-line:variable-name
@@ -71,4 +74,14 @@ describe('removeKeysThatAreInPackage', () => {
     expect(keys).toEqual(['y']);
   });
 
+});
+
+describe('readYarnLock', () => {
+  it('strips windows line endings', async () => {
+
+    (readFile as any).mockReturnValue('windows \r string');
+    await readYarnLock('path');
+
+    expect(parse.mock.calls[0][0]).toEqual('windows  string');
+  });
 });

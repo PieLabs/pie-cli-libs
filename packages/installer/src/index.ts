@@ -107,8 +107,10 @@ async function installPieSubPackage(
     return { moduleId: p.rootModuleId, path: rp };
   });
 
-  await yarnInstall(installDir, relativeDependencies.map(r => r.path));
+  /**
+   * Note: yarn on windows requires 'file:' prefix for local installs.
+   */
+  await yarnInstall(installDir, relativeDependencies.map(r => `file:${r.path}`));
 
-  // logger.silly('[installPieSubPackage] installResult', installResult);
   return installDir;
 }

@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="1.1.2"></a>
+## [1.1.2](https://github.com/PieLabs/pie-cli-libs/compare/v1.1.1...v1.1.2) (2018-02-27)
+
+
+### Bug Fixes
+
+* **yarn:** add file prefix for local installs ([e378a65](https://github.com/PieLabs/pie-cli-libs/commit/e378a65))
+* **yarn:** find windows yarn.cmd if needed ([3e0aa25](https://github.com/PieLabs/pie-cli-libs/commit/3e0aa25))
+* **yarn:** fix windows yarn lookup ([67c762e](https://github.com/PieLabs/pie-cli-libs/commit/67c762e))
+* **yarn:** fix yarn lock file parsing on windows ([9cb1b58](https://github.com/PieLabs/pie-cli-libs/commit/9cb1b58))
+
+
+
+
 <a name="1.1.1"></a>
 ## [1.1.1](https://github.com/PieLabs/pie-cli-libs/compare/v1.1.0...v1.1.1) (2018-02-22)
 

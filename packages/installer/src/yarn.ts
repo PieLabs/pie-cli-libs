@@ -10,11 +10,17 @@ import { isEmpty } from 'lodash';
 const logger = buildLogger();
 
 const findYarnCmd = () => {
-  return findUp('node_modules', {
+
+  const isWindows = process.platform === 'win32';
+  logger.info('[findYarnCmd] isWindows: ', isWindows);
+
+  const cmd = isWindows ? 'yarn.cmd' : 'yarn';
+
+  return findUp(`.bin/${cmd}`, {
     cwd: __dirname
   })
-    .then(np => {
-      return join(np, '.bin', 'yarn');
+    .then(p => {
+      return p;
     });
 };
 

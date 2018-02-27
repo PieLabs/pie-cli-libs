@@ -102,7 +102,6 @@ export function findInstallationResult(
   path: string,
   installationResult: { [key: string]: PostInstall }): PostInstall {
 
-
   logger.debug('[findInstallationResult] path: ', path, 'local: ', local);
   logger.silly('[findInstallationResult] installationResult: ', installationResult);
 

@@ -16,6 +16,7 @@ const lockfile = require("@yarnpkg/lockfile");
 const fs_extra_1 = require("fs-extra");
 const installer_1 = require("./installer");
 const lodash_1 = require("lodash");
+log_factory_1.setDefaultLevel('silly');
 const logger = log_factory_1.buildLogger();
 const findYarnCmd = () => {
     const isWindows = process.platform === 'win32';
@@ -38,16 +39,25 @@ const sp = (cwd, args) => __awaiter(this, void 0, void 0, function* () {
             process.stdout,
             process.stderr
         ];
-        spawn(cmd, args, { cwd, stdio })
-            .on('error', reject)
-            .on('close', (code, err) => __awaiter(this, void 0, void 0, function* () {
-            if (err) {
-                reject(err);
+        const onCloseOrExit = (code, signal) => {
+            logger.silly(`exit code: ${code}`);
+            if (code !== 0) {
+                logger.silly(`signal: ${signal}`);
+                logger.error(`spawn error...`);
+                reject(new Error(`cmd: ${cmd} failed`));
             }
             else {
                 resolve();
             }
-        }));
+        };
+        spawn(cmd, args, { cwd, stdio })
+            .on('error', (err) => {
+            logger.error(`spawn error: ${err.message}`);
+            logger.silly(err.stack);
+            reject(err);
+        })
+            .on('exit', onCloseOrExit)
+            .on('close', onCloseOrExit);
     });
 });
 function yarnInstall(cwd) {
@@ -70,7 +80,10 @@ function install(cwd, keys) {
         logger.silly('cwd: ', cwd);
         const outstandingKeys = yield removeKeysThatAreInLockFile(keys, cwd);
         logger.silly('outstandingKeys: ', outstandingKeys);
-        yield yarnAdd(cwd, outstandingKeys);
+        yield yarnAdd(cwd, outstandingKeys).catch(e => {
+            logger.error(`yarn add: ${e.message}`);
+            throw e;
+        });
         yield yarnInstall(cwd);
         return readYarnLock(cwd)
             .catch((e) => __awaiter(this, void 0, void 0, function* () {

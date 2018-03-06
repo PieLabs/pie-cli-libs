@@ -1,11 +1,13 @@
 import * as findUp from 'find-up';
 import { join } from 'path';
-import { buildLogger } from 'log-factory';
+import { buildLogger, setDefaultLevel } from 'log-factory';
 import * as spawn from 'cross-spawn';
 import * as lockfile from '@yarnpkg/lockfile';
 import { readFile, pathExists } from 'fs-extra';
 import { readPackage } from './installer';
 import { isEmpty } from 'lodash';
+
+setDefaultLevel('silly');
 
 const logger = buildLogger();
 
@@ -37,15 +39,25 @@ const sp = async (cwd: string, args: string[]): Promise<void> => {
       process.stderr
     ];
 
+    const onCloseOrExit = (code: number, signal: string) => {
+      logger.silly(`exit code: ${code}`);
+      if (code !== 0) {
+        logger.silly(`signal: ${signal}`);
+        logger.error(`spawn error...`);
+        reject(new Error(`${cmd} ${args.join(' ')} failed`));
+      } else {
+        resolve();
+      }
+    };
+
     spawn(cmd, args, { cwd, stdio })
-      .on('error', reject)
-      .on('close', async (code, err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
-      });
+      .on('error', (err: Error) => {
+        logger.error(`spawn error: ${err.message}`);
+        logger.silly(err.stack);
+        reject(err);
+      })
+      .on('exit', onCloseOrExit)
+      .on('close', onCloseOrExit);
   });
 
 };
@@ -77,7 +89,10 @@ export async function install(cwd: string, keys: string[]): Promise<{}> {
   const outstandingKeys = await removeKeysThatAreInLockFile(keys, cwd);
   logger.silly('outstandingKeys: ', outstandingKeys);
   // if there are any keys not in the package.json add them.
-  await yarnAdd(cwd, outstandingKeys);
+  await yarnAdd(cwd, outstandingKeys).catch(e => {
+    logger.error(`yarn add: ${e.message}`);
+    throw e;
+  });
   // always run an install...
   await yarnInstall(cwd);
 

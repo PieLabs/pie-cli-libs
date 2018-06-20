@@ -1,0 +1,7 @@
+src
+__mocks__
+preprocessor.js
+tsconfig.*
+jest.config.*
+*.tgz
+yarn.lock

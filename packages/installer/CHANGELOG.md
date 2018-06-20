@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="1.3.0"></a>
+# [1.3.0](https://github.com/pie-framework/pie-cli-libs/compare/v1.2.0...v1.3.0) (2018-06-20)
+
+
+### Features
+
+* export InstallResult w/ lockfiles ([f5e6d8e](https://github.com/pie-framework/pie-cli-libs/commit/f5e6d8e))
+
+
+
+
 <a name="1.2.0"></a>
 # [1.2.0](https://github.com/pie-framework/pie-cli-libs/compare/v1.1.3...v1.2.0) (2018-06-20)
 

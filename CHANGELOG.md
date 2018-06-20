@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/pie-framework/pie-cli-libs/compare/v1.1.3...v1.2.0) (2018-06-20)
+
+
+### Bug Fixes
+
+* **yarn:** add more detailed error handling ([3f99c61](https://github.com/pie-framework/pie-cli-libs/commit/3f99c61))
+
+
+### Features
+
+* install returns `lockFiles.root`, Input contains `version` specifier ([368e40e](https://github.com/pie-framework/pie-cli-libs/commit/368e40e))
+
+
+
+
 <a name="1.1.3"></a>
 ## [1.1.3](https://github.com/pie-framework/pie-cli-libs/compare/v1.1.2...v1.1.3) (2018-06-20)
 

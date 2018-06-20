@@ -1,6 +1,6 @@
 {
   "name": "@pie-cli-libs/installer",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "description": "installer for pie elements",
   "license": "MIT",
   "main": "lib/index.js",

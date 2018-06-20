@@ -1,40 +1,41 @@
 export enum PackageType {
-  FILE = 'file',
-  PACKAGE = 'package'
+  FILE = "file",
+  PACKAGE = "package"
 }
 
 export type PiePackageConfig = {
-  element?: string,
-  controller?: string,
-  configure?: string
+  element?: string;
+  controller?: string;
+  configure?: string;
 };
 
 export type Dirs = {
-  configure: string,
-  controllers: string,
-  root: string
+  configure: string;
+  controllers: string;
+  root: string;
 };
 
 export type Input = {
-  element: string,
-  value: string
+  element: string;
+  value: string;
+  version: string;
 };
 
 export type PreInstallRequest = {
-  element: string,
-  value: string,
-  local: boolean,
-  type: PackageType,
-  hasModel: boolean,
-  package?: { name: string }
+  element: string;
+  value: string;
+  local: boolean;
+  type: PackageType;
+  hasModel: boolean;
+  package?: { name: string };
 };
 
 export type PostInstall = {
-  dir: string,
-  moduleId: string,
-  version: string,
-  resolved: string,
-  dependencies: { [key: string]: string }
+  dir: string;
+  moduleId: string;
+  version: string;
+  resolved: string;
+  dependencies: { [key: string]: string };
 };
 
 export interface Element {
@@ -81,15 +82,15 @@ export interface Pkg {
 }
 
 export type ElementMap = {
-  [key: string]: string
+  [key: string]: string;
 };
 
 export type Model = {
-  element: string
+  element: string;
 };
 
 export type PackageJson = {
-  name: string,
-  version: string,
-  dependencies?: { [key: string]: string }
+  name: string;
+  version: string;
+  dependencies?: { [key: string]: string };
 };

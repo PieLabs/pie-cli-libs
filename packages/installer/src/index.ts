@@ -34,6 +34,9 @@ const logger = getLogger("pie-cli-libs/installer");
 export type InstallResult = {
   dirs: Dirs;
   pkgs: Pkg[];
+  lockFiles: {
+    root: any;
+  };
 };
 
 export async function install(
@@ -41,13 +44,7 @@ export async function install(
   elements: ElementMap,
   models: Model[],
   reporter: Reporter
-): Promise<{
-  dirs: Dirs;
-  pkgs: Pkg[];
-  lockFiles: {
-    root: any;
-  };
-}> {
+): Promise<InstallResult> {
   logger.silly("dir:", dir);
 
   const installer = new RootInstaller(dir, reporter);

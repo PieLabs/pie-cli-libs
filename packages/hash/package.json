@@ -1,6 +1,6 @@
 {
   "name": "@pie-cli-libs/hash",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "main": "lib/index.js",
   "license": "MIT",
   "publishConfig": {
@@ -10,8 +10,8 @@
     "lodash": "^4.17.10"
   },
   "devDependencies": {
-    "jest": "^23.2.0",
     "@types/jest": "^23.1.2",
+    "jest": "^23.2.0",
     "typescript": "^2.9.2"
   }
 }

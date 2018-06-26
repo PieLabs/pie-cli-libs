@@ -1,7 +1,6 @@
 import * as _ from "lodash";
 
 const hashCode = (str: string): string => {
-  console.log("str: ", str);
   let res = 0;
   const len = str.length;
   for (let i = 0; i < len; i++) {
@@ -35,6 +34,5 @@ export const hash = (
 
   const sorted = _.sortBy(unique, "name");
   const string = sorted.map(nv => `${nv.name}@${nv.version}`).join(",");
-  console.log("string: ", string);
   return hashCode(string);
 };

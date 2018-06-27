@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="1.5.2"></a>
+## [1.5.2](https://github.com/pie-framework/pie-cli-libs/compare/v1.5.1...v1.5.2) (2018-06-27)
+
+
+### Bug Fixes
+
+* remote packages can have custom paths ([eebc121](https://github.com/pie-framework/pie-cli-libs/commit/eebc121))
+
+
+
+
 <a name="1.4.0"></a>
 # [1.4.0](https://github.com/pie-framework/pie-cli-libs/compare/v1.3.0...v1.4.0) (2018-06-20)
 

@@ -148,21 +148,17 @@ export function findInstallationResult(
     installationResult
   );
 
-  const findKey = (s: string) => {
-    if (local) {
-      return s.endsWith(`@${path}`);
-    } else {
-      return path === s;
-    }
-  };
+  const findKey = (s: string) => path === s || s.endsWith(`@${path}`);
 
   const getModuleId = (s: string) => {
     if (!s) {
       return;
     }
 
-    if (local) {
-      return s.replace(`@${path}`, "");
+    const suffix = `@${path}`;
+
+    if (s.endsWith(suffix)) {
+      return s.replace(suffix, "");
     } else {
       return s.substr(0, s.lastIndexOf("@"));
     }

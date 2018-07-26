@@ -1,13 +1,11 @@
 import * as findUp from 'find-up';
-import { join } from 'path';
-import { buildLogger, setDefaultLevel } from 'log-factory';
+import { join, resolve as pathResolve } from 'path';
+import { buildLogger } from 'log-factory';
 import * as spawn from 'cross-spawn';
 import * as lockfile from '@yarnpkg/lockfile';
 import { readFile, pathExists } from 'fs-extra';
 import { readPackage } from './installer';
 import { isEmpty } from 'lodash';
-
-setDefaultLevel('silly');
 
 const logger = buildLogger();
 
@@ -18,11 +16,16 @@ const findYarnCmd = () => {
 
   const cmd = isWindows ? 'yarn.cmd' : 'yarn';
 
+  logger.silly('[findYarnCmd] dir: ', pathResolve(__dirname));
+
   return findUp(join('node_modules', '.bin', cmd), {
     cwd: __dirname
   })
     .then(p => {
       logger.silly('[findYarnCmd] p: ', p);
+      if (!p) {
+        throw new Error(`path is undefined`);
+      }
       return p;
     });
 };
@@ -77,8 +80,8 @@ function yarnAdd(cwd: string, keys: string[]): Promise<void> {
 }
 
 export async function install(cwd: string, keys: string[]): Promise<{}> {
-  const yarnCmd = await findYarnCmd();
-  logger.silly('using yarn cmd: ', yarnCmd);
+  // const yarnCmd = await findYarnCmd();
+  // logger.silly('using yarn cmd: ', yarnCmd);
   logger.silly('cwd: ', cwd);
 
   /**

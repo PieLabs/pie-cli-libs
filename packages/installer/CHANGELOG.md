@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+<a name="1.5.4"></a>
+## [1.5.4](https://github.com/pie-framework/pie-cli-libs/compare/v1.5.3...v1.5.4) (2018-07-26)
+
+
+### Bug Fixes
+
+* throw error if yarn path in undefined ([861d3ff](https://github.com/pie-framework/pie-cli-libs/commit/861d3ff))
+
+
+
+
 <a name="1.5.3"></a>
 ## [1.5.3](https://github.com/pie-framework/pie-cli-libs/compare/v1.5.2...v1.5.3) (2018-06-28)
 

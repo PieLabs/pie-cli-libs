@@ -1,5 +1,25 @@
 {
-	"devDependencies": {
-		"lerna": "^2.5.1"
-	}
+  "private": true,
+  "scripts": {
+    "clean:modules": "lerna exec -- rm -rf node_modules && rm -fr node_modules",
+    "clean:libs": "lerna exec -- rm -fr lib",
+    "build": "yarn clean:libs && tsc -b packages",
+    "test": "yarn unit && yarn int",
+    "unit": "jest",
+    "int": "jest int"
+  },
+  "devDependencies": {
+    "@types/temp": "^0.8.31",
+    "@types/jest": "^23.3.2",
+    "lerna": "^3.4.0",
+    "typescript": "^3.1.1",
+    "npm-check-updates": "^2.14.0",
+    "tslint": "^5.11.0",
+    "ts-jest": "^23.10.2",
+    "jest": "^22.1.4",
+    "temp": "^0.8.3"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

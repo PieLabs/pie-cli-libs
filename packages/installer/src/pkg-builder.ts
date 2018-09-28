@@ -1,25 +1,35 @@
-import { PieController, Input, PieConfigure, PiePackageConfig, PostInstall, Element } from './types';
-import { loadPkg } from './utils';
-import { join, resolve } from 'path';
-import * as invariant from 'invariant';
-import { pathExists } from 'fs-extra';
-import { buildLogger } from 'log-factory';
+import {
+  PieController,
+  Input,
+  PieConfigure,
+  PiePackageConfig,
+  PostInstall,
+  Element
+} from "./types";
+import { loadPkg } from "./utils";
+import { join, resolve } from "path";
+import invariant from "invariant";
+import { pathExists } from "fs-extra";
+import { buildLogger } from "log-factory";
 
 const logger = buildLogger();
 
-export const PASSTHROUGH = 'pie-controller/lib/passthrough';
+export const PASSTHROUGH = "pie-controller/lib/passthrough";
 
-const findDir = async (dir: string, yarn: any, name: string): Promise<string | undefined> => {
-
-  logger.silly('[findDir] dir: ', dir, 'name: ', name);
+const findDir = async (
+  dir: string,
+  yarn: any,
+  name: string
+): Promise<string | undefined> => {
+  logger.silly("[findDir] dir: ", dir, "name: ", name);
 
   const key = Object.keys(yarn).find(pattern => pattern.startsWith(`${name}@`));
 
-  logger.silly('[findDir] key: ', key);
+  logger.silly("[findDir] key: ", key);
   if (key) {
-    const path = key.replace(`${name}@`, '').replace('file:', '');
+    const path = key.replace(`${name}@`, "").replace("file:", "");
     const resolved = resolve(dir, path);
-    logger.silly('path: ', path, 'resolved: ', resolved);
+    logger.silly("path: ", path, "resolved: ", resolved);
     const exists = await pathExists(resolved);
     if (exists) {
       return resolved;
@@ -34,13 +44,12 @@ export async function controller(
   yarn: any,
   input: Input,
   rootPkgPath: string,
-  passthrough: string = PASSTHROUGH): Promise<PieController | undefined> {
-
+  passthrough: string = PASSTHROUGH
+): Promise<PieController | undefined> {
   const key = `${input.element}-controller`;
-  const controllerPkg = await loadPkg(join(rootPkgPath, 'controller'));
+  const controllerPkg = await loadPkg(join(rootPkgPath, "controller"));
 
   if (!controllerPkg && !pieDef.controller) {
-
     return {
       dir: undefined,
       isChild: false,
@@ -50,20 +59,22 @@ export async function controller(
     };
   }
 
-  logger.silly('controllerPkg: ', controllerPkg);
+  logger.silly("controllerPkg: ", controllerPkg);
 
   if (controllerPkg) {
-    invariant(controllerPkg.name, 'The controller package must have a name defined');
+    invariant(
+      controllerPkg.name,
+      "The controller package must have a name defined"
+    );
     // Note: ignore what's in pieDef
     return {
       dir: undefined,
       isChild: true,
       isLocalPkg: false,
       key,
-      moduleId: controllerPkg.name,
+      moduleId: controllerPkg.name
     };
   } else {
-
     const relativeDir = await findDir(rootDir, yarn, pieDef.controller);
 
     return {
@@ -83,19 +94,21 @@ export async function configure(
   input: Input,
   rootPkgPath: string
 ): Promise<PieConfigure | undefined> {
-
-  const configurePkg = await loadPkg(join(rootPkgPath, 'configure'));
+  const configurePkg = await loadPkg(join(rootPkgPath, "configure"));
 
   if (!configurePkg && !pieDef.configure) {
     return undefined;
   }
 
-  logger.silly('configurePkg: ', configurePkg);
+  logger.silly("configurePkg: ", configurePkg);
 
   const tag = `${input.element}-configure`;
 
   if (configurePkg) {
-    invariant(configurePkg.name, 'The configure package must have a name defined');
+    invariant(
+      configurePkg.name,
+      "The configure package must have a name defined"
+    );
     // Note: ignore what's in pieDef
     return {
       dir: undefined,
@@ -105,7 +118,6 @@ export async function configure(
       tag
     };
   } else {
-
     const relativeDir = await findDir(rootDir, yarn, pieDef.configure);
 
     return {
@@ -126,7 +138,6 @@ export async function element(
   rootPkgPath: string,
   result: PostInstall
 ): Promise<Element> {
-
   const dir = await findDir(rootDir, yarn, pieDef.element);
 
   return {
@@ -134,6 +145,6 @@ export async function element(
     isLocalPkg: !!dir,
     isRootPkg: !pieDef.element,
     moduleId: pieDef.element ? pieDef.element : result.moduleId,
-    tag: input.element,
+    tag: input.element
   };
 }

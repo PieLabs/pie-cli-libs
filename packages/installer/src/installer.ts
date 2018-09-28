@@ -25,7 +25,7 @@ import {
   PostInstall
 } from "./types";
 import { controller, configure, element } from "./pkg-builder";
-import * as invariant from "invariant";
+import invariant from "invariant";
 
 const logger = buildLogger();
 

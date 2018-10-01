@@ -29,5 +29,6 @@
   "dependencies": {
     "dev": "^0.1.3",
     "verdaccio": "^3.8.2"
-  }
+  },
+  "name": "pie-cli-libs"
 }

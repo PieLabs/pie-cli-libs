@@ -83,6 +83,8 @@ export default class RootInstaller {
       packages.map(r => r.value)
     );
 
+    logger.silly("installation complete - lockData:", lockData);
+
     const pkgs = _.zipWith(
       inputs,
       mappedRequests,

@@ -1,7 +1,7 @@
 import findUp from "find-up";
 import { join, resolve as pathResolve } from "path";
 import { buildLogger } from "log-factory";
-import * as spawn from "cross-spawn";
+import spawn from "cross-spawn";
 import * as lockfile from "@yarnpkg/lockfile";
 import { readFile, pathExists } from "fs-extra";
 import { readPackage } from "./installer";
@@ -30,7 +30,7 @@ const findYarnCmd = () => {
 
 const sp = async (cwd: string, args: string[]): Promise<void> => {
   const cmd = await findYarnCmd();
-  logger.silly("cmd: ", cmd);
+  logger.silly("cmd: ", cmd, args.join(" "));
   return new Promise<void>((resolve, reject) => {
     // aka inherit
     const stdio = [process.stdin, process.stdout, process.stderr];
@@ -91,6 +91,7 @@ export async function install(cwd: string, keys: string[]): Promise<{}> {
   // always run an install...
   await yarnInstall(cwd);
 
+  logger.silly(" ready to read yarn lock !!! ");
   /**
    * If a package has no dependencies no yarn.lock is present.
    * Handle this.
@@ -116,14 +117,15 @@ export async function readYarnLock(cwd: string): Promise<{}> {
     const file = await readFile(yarnLockPath, "utf8");
 
     /**
-     * Windows line endings are triggering a parse failure. See: https://github.com/yarnpkg/yarn/issues/5214
+     * Windows line endings are triggering a parse failure.
+     * See: https://github.com/yarnpkg/yarn/issues/5214
      */
     const cleaned = file.replace(/\r/g, "");
-    logger.info("[readYarnLock] file: ", file.substring(0, 300));
-    logger.info("[readYarnLock] begin parse...");
+    logger.silly("[readYarnLock] file: ", file.substring(0, 300));
+    logger.silly("[readYarnLock] begin parse...");
     const parsed = lockfile.parse(cleaned);
-    logger.info("[readYarnLock] parsed: ", parsed);
-    logger.info("[readYarnLock] parsed.object: ", parsed.object);
+    logger.silly("[readYarnLock] parsed: ", parsed);
+    logger.silly("[readYarnLock] parsed.object: ", parsed.object);
     return parsed.object;
   } else {
     return Promise.reject(new Error(`no yarn file: ${yarnLockPath}`));

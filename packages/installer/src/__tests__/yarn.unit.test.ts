@@ -1,14 +1,27 @@
-import { removeKeysThatAreInPackage, inDependencies, inYarnLock, readYarnLock } from '../yarn';
-import { setDefaultLevel } from 'log-factory';
-import { readFile } from 'fs-extra';
-import { parse } from '@yarnpkg/lockfile';
+import {
+  removeKeysThatAreInPackage,
+  inDependencies,
+  inYarnLock,
+  readYarnLock
+} from "../yarn";
+import { setDefaultLevel } from "log-factory";
+import { readFile } from "fs-extra";
+import { parse } from "@yarnpkg/lockfile";
+
+jest.mock("@yarnpkg/lockfile", () => ({
+  parse: jest.fn().mockReturnValue({})
+}));
+
+jest.mock("fs-extra", () => ({
+  pathExists: jest.fn().mockReturnValue(true),
+  readFile: jest.fn().mockReturnValue("file contents")
+}));
 
 beforeAll(() => {
-  setDefaultLevel('silly');
+  setDefaultLevel("info");
 });
 
-describe('inDependencies', () => {
-
+describe("inDependencies", () => {
   // tslint:disable-next-line:variable-name
   const _assert = only => (deps, input, expected) => {
     const fn = only ? it.only : it;
@@ -21,18 +34,16 @@ describe('inDependencies', () => {
 
   const assertIn = _assert(false);
 
-  assertIn({ moduleId: '../..' }, '../..', true);
-  assertIn({ moduleId: '../..' }, '../../..', false);
-  assertIn({ moduleId: '^1.0.0' }, 'moduleId@^1.0.0', true);
-  assertIn({ moduleId: '^2.0.0' }, 'moduleId', true);
-  assertIn({ moduleId: '*' }, 'moduleId@*', true);
-  assertIn({ moduleId: '*' }, 'other@*', false);
-  assertIn({ '@scope/pkg': '~2.0.1' }, '@scope/pkg@~2.0.1', true);
-
+  assertIn({ moduleId: "../.." }, "../..", true);
+  assertIn({ moduleId: "../.." }, "../../..", false);
+  assertIn({ moduleId: "^1.0.0" }, "moduleId@^1.0.0", true);
+  assertIn({ moduleId: "^2.0.0" }, "moduleId", true);
+  assertIn({ moduleId: "*" }, "moduleId@*", true);
+  assertIn({ moduleId: "*" }, "other@*", false);
+  assertIn({ "@scope/pkg": "~2.0.1" }, "@scope/pkg@~2.0.1", true);
 });
 
-describe('inYarnLock', () => {
-
+describe("inYarnLock", () => {
   // tslint:disable-next-line:variable-name
   const _assert = only => (yarn, target, expected) => {
     const fn = only ? it.only : it;
@@ -42,46 +53,42 @@ describe('inYarnLock', () => {
   };
 
   const assertIn = _assert(false);
-  assertIn({}, '../..', false);
-  assertIn({ '@scope/pkg@../..': {} }, '../..', true);
-  assertIn({ '@scope/pkg@^1.0.0': {} }, '@scope/pkg@^1.0.0', true);
-  assertIn({ '@scope/pkg@^2.0.0': {} }, '@scope/pkg', true);
-  assertIn({ 'log-factory@PieLabs/log-factory': {} }, 'PieLabs/log-factory', true);
+  assertIn({}, "../..", false);
+  assertIn({ "@scope/pkg@../..": {} }, "../..", true);
+  assertIn({ "@scope/pkg@^1.0.0": {} }, "@scope/pkg@^1.0.0", true);
+  assertIn({ "@scope/pkg@^2.0.0": {} }, "@scope/pkg", true);
+  assertIn(
+    { "log-factory@PieLabs/log-factory": {} },
+    "PieLabs/log-factory",
+    true
+  );
 });
 
-describe('removeKeysThatAreInPackage', () => {
-  it('strips remote installs', () => {
-
-    const keys = removeKeysThatAreInPackage(
-      ['@scope/pkg@~2.0.1', 'y'], {
-        dependencies: {
-          '@scope/pkg': '~2.0.1'
-        }
+describe("removeKeysThatAreInPackage", () => {
+  it("strips remote installs", () => {
+    const keys = removeKeysThatAreInPackage(["@scope/pkg@~2.0.1", "y"], {
+      dependencies: {
+        "@scope/pkg": "~2.0.1"
       }
-    );
-    expect(keys).toEqual(['y']);
+    });
+    expect(keys).toEqual(["y"]);
   });
 
-  it('strips local installs', () => {
-
-    const keys = removeKeysThatAreInPackage(
-      ['../..', 'y'], {
-        dependencies: {
-          moduleId: '../..'
-        }
+  it("strips local installs", () => {
+    const keys = removeKeysThatAreInPackage(["../..", "y"], {
+      dependencies: {
+        moduleId: "../.."
       }
-    );
-    expect(keys).toEqual(['y']);
+    });
+    expect(keys).toEqual(["y"]);
   });
-
 });
 
-describe('readYarnLock', () => {
-  it('strips windows line endings', async () => {
+describe("readYarnLock", () => {
+  it("strips windows line endings", async () => {
+    (readFile as any).mockReturnValue("windows \r string");
+    await readYarnLock("path");
 
-    (readFile as any).mockReturnValue('windows \r string');
-    await readYarnLock('path');
-
-    expect(parse.mock.calls[0][0]).toEqual('windows  string');
+    expect(parse.mock.calls[0][0]).toEqual("windows  string");
   });
 });

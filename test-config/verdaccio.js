@@ -1,5 +1,6 @@
-const { spawn, ChildProcess, spawnSync } = require("child_process");
+const { spawn, ChildProcess, spawnSync, execSync } = require("child_process");
 const debug = require("debug");
+const { resolve } = require("path");
 
 let verdaccio = null;
 
@@ -18,8 +19,13 @@ exports.boot = function(done) {
     return;
   }
 
-  spawnSync("npm", ["set", "registry", "http://localhost:4873"]);
-  verdaccio = spawn("verdaccio");
+  const out = execSync("npm config set registry http://localhost:4873");
+  log(out.toString());
+
+  log(">>> !!!!!!!!!!!!!!!!!!", execSync("npm config get registry").toString());
+  const executable = resolve(".", "node_modules", ".bin", "verdaccio");
+  log("path: ", executable);
+  verdaccio = spawn(executable);
 
   verdaccio.on("error", e => {
     log(">> Error: ", e);
@@ -29,7 +35,7 @@ exports.boot = function(done) {
     log("verdaccio shut down");
   });
 
-  setTimeout(() => done(), 500);
+  setTimeout(() => done(), 1500);
 };
 
 exports.kill = function(done) {

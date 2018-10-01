@@ -17,6 +17,7 @@ import { getLogger } from "log-factory";
 import { join, relative } from "path";
 import { ensureDir } from "fs-extra";
 import { install as yarnInstall } from "./yarn";
+import NewInstaller from "./new-installer";
 
 export {
   Element,
@@ -38,6 +39,32 @@ export type InstallResult = {
     root: any;
   };
 };
+
+/**
+ * This new installer makes use of yarn workspaces to speed up the install.
+ * it builds a mono-repo style directory structure,
+ * then run yarn install
+ */
+export async function newInstall(
+  dir: string,
+  elements: ElementMap,
+  models: Model[],
+  reporter: Reporter
+): Promise<InstallResult> {
+  const installer = new NewInstaller(dir, reporter);
+
+  await installer.install(elements, models);
+
+  // 1. download and extract the npm archive directly
+  // - place in dir like so:
+  // - packages/
+  // -   element-one/
+  // -   element-two/
+  // - add { packages: [ "packages/*", "packages/*/controller", "packages/*/configure"]} to the root
+  // - run yarn install at the root
+  // - enjoy speed install
+  return null;
+}
 
 export async function install(
   dir: string,

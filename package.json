@@ -4,6 +4,7 @@
     "clean:modules": "lerna exec -- rm -rf node_modules && rm -fr node_modules",
     "clean:libs": "lerna exec -- rm -fr lib",
     "build": "yarn clean:libs && tsc -b packages",
+    "release": "yarn build && ./node_modules/.bin/lerna publish --conventional-commits",
     "test": "yarn unit && yarn int",
     "unit": "jest unit",
     "": "There is an issue where the npm registry isn't set correctly when you run npm/yarn int - so asking for a direct run here.",

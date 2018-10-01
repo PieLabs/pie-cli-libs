@@ -1,0 +1,40 @@
+#!/usr/bin/env node
+
+console.log(
+  "Adding the pie-test-elements to the local verdaccio installation...."
+);
+
+const fs = require("fs-extra");
+const { execSync, spawn } = require("child_process");
+
+const { resolve } = require("path");
+
+module.exports = () => {
+  let v = spawn("./node_modules/.bin/verdaccio");
+
+  setTimeout(() => {
+    const elsDir = resolve(__dirname, "..", "pie-test-elements");
+    if (!fs.existsSync(elsDir)) {
+      return Promise.reject(new Error("You must install pie test elements"));
+    }
+    const list = fs.readdirSync(`${elsDir}/packages`);
+
+    console.log(execSync("npm config list").toString());
+
+    list.forEach(n => {
+      const pkg = require(`${elsDir}/packages/${n}/package.json`);
+
+      try {
+        const result = execSync(`npm view ${pkg.name} --json`);
+        console.log("result:", result.toString());
+      } catch (e) {
+        console.log("not there - publish");
+        execSync("npm publish", { cwd: `${elsDir}/packages/${n}` });
+      }
+    });
+    console.log("installed:", list);
+    v.kill();
+  }, 200);
+};
+
+module.exports();

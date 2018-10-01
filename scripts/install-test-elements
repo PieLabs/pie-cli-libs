@@ -1,0 +1,11 @@
+#!/usr/bin/env bash 
+
+rm -fr pie-test-elements
+
+curl -LJ https://github.com/PieElements/pie-test-elements/archive/master.zip -o pie-test-elements.zip
+unzip pie-test-elements.zip
+mv pie-test-elements-master pie-test-elements
+rm -fr pie-test-elements.zip
+scripts/add-elements-to-verdaccio
+
+

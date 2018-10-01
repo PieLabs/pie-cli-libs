@@ -1,5 +1,34 @@
 {
-	"devDependencies": {
-		"lerna": "^2.5.1"
-	}
+  "private": true,
+  "scripts": {
+    "clean:modules": "lerna exec -- rm -rf node_modules && rm -fr node_modules",
+    "clean:libs": "lerna exec -- rm -fr lib",
+    "build": "yarn clean:libs && tsc -b packages",
+    "release": "yarn build && ./node_modules/.bin/lerna publish --conventional-commits",
+    "test": "yarn unit && yarn int",
+    "unit": "jest unit",
+    "": "There is an issue where the npm registry isn't set correctly when you run npm/yarn int - so asking for a direct run here.",
+    "int": "echo run directly './node_modules/.bin/jest --runInBand int'",
+    "postinstall": "# yarn install-test-elements",
+    "install-test-elements": "scripts/install-test-elements"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.2",
+    "@types/temp": "^0.8.31",
+    "jest": "^23.6.0",
+    "lerna": "^3.4.0",
+    "npm-check-updates": "^2.14.0",
+    "temp": "^0.8.3",
+    "ts-jest": "^23.10.3",
+    "tslint": "^5.11.0",
+    "typescript": "^3.1.1"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "dependencies": {
+    "dev": "^0.1.3",
+    "verdaccio": "^3.8.2"
+  },
+  "name": "pie-cli-libs"
 }

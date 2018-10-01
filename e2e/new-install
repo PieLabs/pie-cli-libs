@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+const i = require("../packages/installer/lib");
+
+i.newInstall(__dirname, {
+  "multiple-choice": "@pie-element/multiple-choice@2.1.2",
+  "select-text": "@pie-element/select-text@3.0.3"
+})
+  .then(() => {
+    console.log("done");
+  })
+  .catch(e => {
+    console.error(e);
+  });

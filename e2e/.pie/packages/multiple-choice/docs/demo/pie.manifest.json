@@ -1,0 +1,11 @@
+{
+  "hash": "1801896442",
+  "info": [
+    {
+      "pie": "@pie-element/multiple-choice",
+      "version": {
+        "requested": "latest"
+      }
+    }
+  ]
+}

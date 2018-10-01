@@ -8,10 +8,5 @@
   },
   "dependencies": {
     "lodash": "^4.17.10"
-  },
-  "devDependencies": {
-    "@types/jest": "^23.1.2",
-    "jest": "^23.2.0",
-    "typescript": "^2.9.2"
   }
 }

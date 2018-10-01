@@ -25,7 +25,7 @@ import {
   PostInstall
 } from "./types";
 import { controller, configure, element } from "./pkg-builder";
-import * as invariant from "invariant";
+import invariant from "invariant";
 
 const logger = buildLogger();
 
@@ -82,6 +82,8 @@ export default class RootInstaller {
       this.installationDir,
       packages.map(r => r.value)
     );
+
+    logger.silly("installation complete - lockData:", lockData);
 
     const pkgs = _.zipWith(
       inputs,

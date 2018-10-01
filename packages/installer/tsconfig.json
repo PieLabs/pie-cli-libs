@@ -1,20 +1,10 @@
 {
+  "extends": "../base.tsconfig.json",
+
   "compilerOptions": {
-    "module": "commonjs",
-    "noImplicitAny": false,
-    "noImplicitUseStrict": false,
-    "removeComments": true,
-    "preserveConstEnums": true,
-    "sourceMap": true,
-    "outDir": "lib/",
-    "target": "es6",
-    "typeRoots": [
-      "./node_modules/@types"
-    ],
-    "noUnusedLocals": true,
-    "declaration": true
+    "rootDir": "src",
+    "outDir": "lib"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["src/__tests__/*"]
 }
